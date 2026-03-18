@@ -1,7 +1,7 @@
-import express from "express";
-import FoodController from "../controllers/foodController.js";
-import { authentication } from "../middlewares/authentication.js";
-import { upload } from "../middlewares/multer.js";
+const express = require("express");
+const FoodController = require("../controllers/foodController.js");
+const { authentication } = require("../middlewares/authentication.js");
+const { upload } = require("../middlewares/multer.js");
 
 const router = express.Router();
 
@@ -22,4 +22,4 @@ router.post(
   FoodController.detectFood,
 );
 
-export default router;
+module.exports = router;

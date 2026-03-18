@@ -1,5 +1,5 @@
-import axios from "axios";
-import logger from "../helpers/logger.js";
+const axios = require("axios");
+const logger = require("../helpers/logger.js");
 
 export const searchEdamam = async (query) => {
   try {

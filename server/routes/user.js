@@ -1,7 +1,7 @@
-import express from "express";
-import UserController from "../controllers/userController.js";
-import { authentication } from "../middlewares/authentication.js";
-import { upload } from "../middlewares/multer.js";
+const express = require("express");
+const UserController = require("../controllers/userController.js");
+const { authentication } = require("../middlewares/authentication.js");
+const { upload } = require("../middlewares/multer.js");
 
 const router = express.Router();
 
@@ -16,4 +16,4 @@ router.patch(
   UserController.updateProfilePicture,
 );
 
-export default router;
+module.exports = router;

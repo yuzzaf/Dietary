@@ -1,6 +1,6 @@
-import { searchEdamam } from "./edamam.service.js";
-import { searchFatSecret } from "./fatsecret.service.js";
-import logger from "../helpers/logger.js";
+const { searchEdamam } = require("./edamam.service.js");
+const { searchFatSecret } = require("./fatsecret.service.js");
+const logger = require("../helpers/logger.js");
 
 export const searchFood = async (query) => {
   try {

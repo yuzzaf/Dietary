@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
-import { User } from "../models/index.js";
+const jwt = require("jsonwebtoken");
+const { User } = require("../models/index.js");
 
-export const authentication = async (req, res, next) => {
+const authentication = async (req, res, next) => {
   try {
     const bearer = req.headers.authorization;
 
@@ -34,3 +34,5 @@ export const authentication = async (req, res, next) => {
     res.status(401).json({ message: "Unauthorized" });
   }
 };
+
+module.exports = authentication;

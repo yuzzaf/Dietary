@@ -20,9 +20,15 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
         validate: {
-          isEmail: "Email is not valid",
-          notEmpty: "Email is required",
-          notNull: "Email is required",
+          isEmail: {
+            msg: "Email is not valid",
+          },
+          notEmpty: {
+            msg: "Email is required",
+          },
+          notNull: {
+            msg: "Email is required",
+          },
         },
       },
       password: {
@@ -33,8 +39,12 @@ module.exports = (sequelize, DataTypes) => {
             args: [6, 255],
             msg: "Password must be at least 6 characters",
           },
-          notEmpty: "Password is required",
-          notNull: "Password is required",
+          notEmpty: {
+            msg: "Password is required",
+          },
+          notNull: {
+            msg: "Password is required",
+          },
         },
       },
       google_id: DataTypes.STRING,
@@ -42,16 +52,24 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notEmpty: "First name is required",
-          notNull: "First name is required",
+          notEmpty: {
+            msg: "First name is required",
+          },
+          notNull: {
+            msg: "First name is required",
+          },
         },
       },
       lastName: {
         type: DataTypes.STRING,
         allowNull: false,
         validate: {
-          notEmpty: "Last name is required",
-          notNull: "Last name is required",
+          notEmpty: {
+            msg: "Last name is required",
+          },
+          notNull: {
+            msg: "Last name is required",
+          },
         },
       },
       profile_picture: DataTypes.STRING,

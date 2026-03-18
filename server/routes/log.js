@@ -1,7 +1,7 @@
-import express from "express";
-import LogController from "../controllers/logController.js";
-import { authentication } from "../middlewares/authentication.js";
-import { authorizeFoodLog } from "../middlewares/authorization.js";
+const express = require("express");
+const LogController = require("../controllers/logController.js");
+const { authentication } = require("../middlewares/authentication.js");
+const { authorizeFoodLog } = require("../middlewares/authorization.js");
 
 const router = express.Router();
 
@@ -19,4 +19,4 @@ router.delete(
   LogController.deleteLog,
 );
 
-export default router;
+module.exports = router;

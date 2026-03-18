@@ -1,6 +1,6 @@
-import { FoodLog } from "../models/index.js";
+const { FoodLog } = require("../models/index.js");
 
-export const authorizeFoodLog = async (req, res, next) => {
+const authorizeFoodLog = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -19,3 +19,5 @@ export const authorizeFoodLog = async (req, res, next) => {
     res.status(500).json(err);
   }
 };
+
+module.exports = authorizeFoodLog;
