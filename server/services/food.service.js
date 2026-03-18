@@ -1,6 +1,8 @@
 const { searchEdamam } = require("./edamam.service.js");
 const { searchFatSecret } = require("./fatsecret.service.js");
 const logger = require("../helpers/logger.js");
+const { detectWithGemini } = require("./ai.service.js");
+const { Food, FoodLog } = require("../models");
 
 const searchFood = async (query) => {
   try {
@@ -41,4 +43,31 @@ const searchFood = async (query) => {
   }
 };
 
-module.exports = { searchFood };
+const detectFoodService = async (file, userId) => {
+  const detected = await detectWithGemini(file);
+
+  const results = await searchFood(detected);
+
+  const picked = results[0];
+
+  const [food] = await Food.findOrCreate({
+    where: {
+      external_id: picked.external_id,
+      source: picked.source,
+    },
+    defaults: picked,
+  });
+
+  const log = await FoodLog.create({
+    userId,
+    foodId: food.id,
+  });
+
+  return {
+    detected,
+    food,
+    log,
+  };
+};
+
+module.exports = { searchFood, detectFoodService };

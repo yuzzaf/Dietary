@@ -73,6 +73,11 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       profilePicture: DataTypes.STRING,
+      weight: DataTypes.FLOAT,
+      height: DataTypes.FLOAT,
+      age: DataTypes.INTEGER,
+      gender: DataTypes.STRING,
+      activityLevel: DataTypes.STRING,
     },
     {
       sequelize,

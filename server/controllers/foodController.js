@@ -1,8 +1,17 @@
-const { searchFood } = require("../services/food.service");
+const { searchFood, detectFoodService } = require("../services/food.service");
 const { Food } = require("../models");
 const logger = require("../helpers/logger");
 
 class FoodController {
+  static async detectFood(req, res, next) {
+    try {
+      const result = await detectFoodService(req.file, req.user.id);
+      res.json(result);
+    } catch (err) {
+      next(err);
+      logger.error(err);
+    }
+  }
   static async searchFood(req, res, next) {
     try {
       const { q } = req.query;
