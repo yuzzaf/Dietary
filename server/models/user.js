@@ -15,11 +15,45 @@ module.exports = (sequelize, DataTypes) => {
   }
   User.init(
     {
-      email: DataTypes.STRING,
-      password: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: "Email is not valid",
+          notEmpty: "Email is required",
+          notNull: "Email is required",
+        },
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          len: {
+            args: [6, 255],
+            msg: "Password must be at least 6 characters",
+          },
+          notEmpty: "Password is required",
+          notNull: "Password is required",
+        },
+      },
       google_id: DataTypes.STRING,
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: "First name is required",
+          notNull: "First name is required",
+        },
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          notEmpty: "Last name is required",
+          notNull: "Last name is required",
+        },
+      },
       profile_picture: DataTypes.STRING,
     },
     {
