@@ -7,10 +7,10 @@ module.exports = (sequelize, DataTypes) => {
       return `${this.firstName || ""} ${this.lastName || ""}`.trim();
     }
     static associate(models) {
-      User.hasMany(models.FoodLog, { foreignKey: "user_id" });
-      User.hasMany(models.FoodImage, { foreignKey: "user_id" });
-      User.hasOne(models.UserGoal, { foreignKey: "user_id" });
-      User.hasMany(models.AIInsight, { foreignKey: "user_id" });
+      User.hasMany(models.FoodLog, { foreignKey: "userId" });
+      User.hasMany(models.FoodImage, { foreignKey: "userId" });
+      User.hasOne(models.UserGoal, { foreignKey: "userId" });
+      User.hasMany(models.AIInsight, { foreignKey: "userId" });
     }
   }
   User.init(
@@ -47,7 +47,7 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-      google_id: DataTypes.STRING,
+      googleId: DataTypes.STRING,
       firstName: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
           },
         },
       },
-      profile_picture: DataTypes.STRING,
+      profilePicture: DataTypes.STRING,
     },
     {
       sequelize,

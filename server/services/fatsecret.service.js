@@ -27,7 +27,7 @@ const getAccessToken = async () => {
   }
 };
 
-export const searchFatSecret = async (query) => {
+const searchFatSecret = async (query) => {
   try {
     const token = await getAccessToken();
 
@@ -71,3 +71,5 @@ const extractNutrient = (description, nutrientName) => {
   const match = description.match(regex);
   return match ? parseFloat(match[1]) : 0;
 };
+
+module.exports = { searchFatSecret };

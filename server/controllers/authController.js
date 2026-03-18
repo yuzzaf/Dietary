@@ -2,6 +2,7 @@ const { User } = require("../models/index.js");
 const { hashPassword, comparePassword } = require("../helpers/bcrypt.js");
 const { signToken } = require("../helpers/jwt.js");
 const { OAuth2Client } = require("google-auth-library");
+const crypto = require("crypto");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -46,7 +47,7 @@ const AuthController = class AuthController {
         throw { name: "Unauthorized", message: "Invalid email/password" };
       }
 
-      const isValid = comparePassword(password, user.password);
+      const isValid = await comparePassword(password, user.password);
 
       if (!isValid) {
         throw { name: "Unauthorized", message: "Invalid email/password" };
@@ -89,13 +90,13 @@ const AuthController = class AuthController {
       if (!user) {
         user = await User.create({
           email,
-          google_id: payload.sub,
-          password: "google_login",
+          googleId: payload.sub,
+          password: crypto.randomBytes(16).toString("hex"),
           firstName,
           lastName,
         });
-      } else if (!user.google_id) {
-        await user.update({ google_id: payload.sub });
+      } else if (!user.googleId) {
+        await user.update({ googleId: payload.sub });
       }
 
       const access_token = signToken({ id: user.id });

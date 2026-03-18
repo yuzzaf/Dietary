@@ -1,52 +1,56 @@
-'use strict';
+"use strict";
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Foods', {
+    await queryInterface.createTable("Foods", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       calories: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
       },
       protein: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
       },
       fat: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
       },
       carbs: {
-        type: Sequelize.FLOAT
+        type: Sequelize.FLOAT,
       },
       source: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
-      external_id: {
+      externalId: {
         type: Sequelize.STRING,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
 
-    await queryInterface.addConstraint('Foods', {
-      fields: ['source', 'external_id'],
-      type: 'unique',
-      name: 'unique_food_source_external_id'
+    await queryInterface.addConstraint("Foods", {
+      fields: ["source", "externalId"],
+      type: "unique",
+      name: "unique_food_source_externalId",
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Food');
-  }
+    await queryInterface.removeConstraint(
+      "Foods",
+      "unique_food_source_externalId",
+    );
+    await queryInterface.dropTable("Foods");
+  },
 };

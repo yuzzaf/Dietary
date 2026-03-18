@@ -2,7 +2,7 @@ const { searchEdamam } = require("./edamam.service.js");
 const { searchFatSecret } = require("./fatsecret.service.js");
 const logger = require("../helpers/logger.js");
 
-export const searchFood = async (query) => {
+const searchFood = async (query) => {
   try {
     // STEP 1: coba Edamam dulu
     const edamamResult = await searchEdamam(query);
@@ -40,3 +40,5 @@ export const searchFood = async (query) => {
     }
   }
 };
+
+module.exports = { searchFood };

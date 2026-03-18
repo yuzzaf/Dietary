@@ -10,7 +10,7 @@ const authorizeFoodLog = async (req, res, next) => {
       return res.status(404).json({ message: "Data not found" });
     }
 
-    if (data.user_id !== req.user.id) {
+    if (data.userId !== req.user.id) {
       return res.status(403).json({ message: "Forbidden" });
     }
 

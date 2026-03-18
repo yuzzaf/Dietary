@@ -1,7 +1,7 @@
 const axios = require("axios");
 const logger = require("../helpers/logger.js");
 
-export const searchEdamam = async (query) => {
+const searchEdamam = async (query) => {
   try {
     const response = await axios.get(
       "https://api.edamam.com/api/food-database/v2/parser",
@@ -37,3 +37,5 @@ export const searchEdamam = async (query) => {
     throw err;
   }
 };
+
+module.exports = { searchEdamam };
