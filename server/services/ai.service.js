@@ -1,28 +1,39 @@
-const axios = require("axios");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const detectWithGemini = async (file) => {
-  const base64 = file.buffer.toString("base64");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          parts: [
-            { text: "What food is this? Answer only the name." },
-            {
-              inlineData: {
-                mimeType: file.mimetype,
-                data: base64,
-              },
-            },
-          ],
-        },
-      ],
-    },
-  );
+const generateInsight = async ({
+  foods,
+  targetCalories,
+  consumedCalories,
+  remaining,
+  status,
+}) => {
+  const prompt = `
+User daily calorie target: ${targetCalories} kcal
+Consumed today: ${consumedCalories} kcal
+Remaining: ${remaining} kcal
+Status: ${status}
 
-  return response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+Foods eaten today:
+${foods.map((f) => `- ${f.name} (${f.calories} kcal)`).join("\n")}
+
+Instructions:
+- Explain the user's condition (deficit, balanced, or excess)
+- Give short health advice
+- Suggest foods if still lacking calories
+- Keep it concise (max 3-4 sentences)
+`;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (err) {
+    console.error("Gemini Error:", err);
+    throw err;
+  }
 };
 
-module.exports = { detectWithGemini };
+module.exports = { generateInsight };

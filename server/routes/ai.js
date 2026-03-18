@@ -5,6 +5,6 @@ const authentication = require("../middlewares/authentication.js");
 const router = express.Router();
 
 // generate insight
-router.post("/insight", authentication, AIController.generateInsight);
+router.get("/insight", authentication, AIController.generateInsight);
 
 module.exports = router;
