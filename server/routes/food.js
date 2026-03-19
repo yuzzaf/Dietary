@@ -6,13 +6,12 @@ const { searchLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
-router.get("/search", authentication, searchLimiter, FoodController.searchFood);
+router.get("/search", searchLimiter, FoodController.searchFood);
 
 router.get("/:id", authentication, FoodController.getFoodDetail);
 
 router.post(
   "/detect",
-  authentication,
   upload.single("image"),
   FoodController.detectFood,
 );

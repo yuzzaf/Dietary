@@ -23,11 +23,12 @@ class LogController {
       } = req.body;
 
       // find or create food
+      const whereClause = externalId 
+        ? { externalId, source } 
+        : { name: name.toLowerCase() };
+
       const [food] = await Food.findOrCreate({
-        where: {
-          externalId,
-          source,
-        },
+        where: whereClause,
         defaults: {
           name,
           calories,
