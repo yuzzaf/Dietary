@@ -4,7 +4,7 @@ const authentication = require("../middlewares/authentication.js");
 
 const router = express.Router();
 
-// generate insight
 router.get("/insight", authentication, AIController.generateInsight);
+router.get("/insight/weekly", authentication, AIController.getInsightsWeekly);
 
 module.exports = router;

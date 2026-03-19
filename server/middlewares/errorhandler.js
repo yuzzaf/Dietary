@@ -1,57 +1,23 @@
 const errorHandler = (err, req, res, next) => {
-  let status = err.status || 500;
-  let message = err.message || "Internal Server Error";
-
   switch (err.name) {
-    // JWT
-    case "JsonWebTokenError":
-      status = 401;
-      message = "Invalid token";
-      break;
-
-    case "TokenExpiredError":
-      status = 401;
-      message = "Token expired";
-      break;
-
-    // Sequelize
+    case "BadRequest":
     case "SequelizeValidationError":
-      status = 400;
-      message = err.errors.map((e) => e.message);
-      break;
-
     case "SequelizeUniqueConstraintError":
-      status = 400;
-      message = "Data already exists";
-      break;
-
-    //  Custom
-    case "NotFound":
-      status = 404;
-      message = "Data not found";
-      break;
-
-    case "Unauthorized":
-      status = 401;
-      message = "Unauthorized";
-      break;
-
-    case "Forbidden":
-      status = 403;
-      message = "Forbidden";
-      break;
-
-    // Multer / Upload
     case "MulterError":
-      status = 400;
-      message = err.message;
-      break;
-
+      return res.status(400).json({ message: err.message || "Bad Request" });
+    case "Unauthorized":
+    case "JsonWebTokenError":
+    case "TokenExpiredError":
+      return res.status(401).json({ message: err.message || "Unauthorized" });
+    case "Forbidden":
+      return res.status(403).json({ message: err.message || "Forbidden" });
+    case "NotFound":
+      return res.status(404).json({ message: err.message || "Not Found" });
+    case "TooManyRequests":
+      return res.status(429).json({ message: err.message || "Too Many Requests" });
     default:
-      break;
+      return res.status(500).json({ message: "Internal Server Error" });
   }
-
-  res.status(status).json({ message });
 };
 
 module.exports = errorHandler;

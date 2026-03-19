@@ -5,11 +5,18 @@ const logger = require("../helpers/logger");
 class FoodController {
   static async detectFood(req, res, next) {
     try {
-      const result = await detectFoodService(req.file, req.user.id);
-      res.json(result);
+      const result = await detectFoodService(req.file);
+      res.json({
+        status: "success",
+        data: result,
+        meta: {
+          ai: "gemini",
+          cached: false,
+        },
+      });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("AI Error", err.message);
     }
   }
   static async searchFood(req, res, next) {
@@ -23,12 +30,16 @@ class FoodController {
       const data = await searchFood(q.trim());
 
       res.json({
-        total: data.length,
-        data,
+        status: "success",
+        data: {
+          total: data.length,
+          options: data,
+        },
+        meta: null,
       });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("Search Error", err.message);
     }
   }
   static async getFoodDetail(req, res, next) {
@@ -41,10 +52,14 @@ class FoodController {
         throw { name: "NotFound", message: "Food not found" };
       }
 
-      res.json(food);
+      res.json({
+        status: "success",
+        data: food,
+        meta: null,
+      });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("FoodDetail Error", err.message);
     }
   }
 }

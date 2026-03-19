@@ -29,7 +29,7 @@ const searchEdamam = async (query) => {
         fat: food.nutrients.FAT || 0,
         carbs: food.nutrients.CHOCDF || 0,
         source: "edamam",
-        external_id: food.foodId,
+        externalId: food.foodId,
       };
     });
   } catch (err) {

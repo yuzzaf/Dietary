@@ -36,7 +36,21 @@ const calculateTotalCalories = (logs) => {
   }, 0);
 };
 
+const calculateUserTarget = (user, goal) => {
+  const tdee = calculateTDEE(user);
+
+  if (!goal) return tdee;
+
+  if (goal.targetCalories) return goal.targetCalories;
+
+  if (goal.goalType === "cutting") return tdee - 300;
+  if (goal.goalType === "bulking") return tdee + 300;
+
+  return tdee;
+};
+
 module.exports = {
   calculateTDEE,
   calculateTotalCalories,
+  calculateUserTarget,
 };

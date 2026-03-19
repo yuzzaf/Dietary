@@ -58,7 +58,7 @@ const searchFatSecret = async (query) => {
       fat: extractNutrient(item.food_description, "Fat"),
       carbs: extractNutrient(item.food_description, "Carbs"),
       source: "fatsecret",
-      external_id: item.food_id,
+      externalId: item.food_id,
     }));
   } catch (err) {
     logger.error("FatSecret Search Error:", err.message);

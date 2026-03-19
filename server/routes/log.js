@@ -8,6 +8,9 @@ const router = express.Router();
 // get logs
 router.get("/", authentication, LogController.getLogs);
 
+// get daily summary
+router.get("/today", authentication, LogController.getLogsToday);
+
 // add log
 router.post("/", authentication, LogController.createLog);
 

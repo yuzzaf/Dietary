@@ -23,6 +23,8 @@ Instructions:
 - Give short health advice
 - Suggest foods if still lacking calories
 - Keep it concise (max 3-4 sentences)
+- Speak casually like a friendly nutrition coach
+- Avoid robotic tone
 `;
 
   try {
@@ -36,4 +38,36 @@ Instructions:
   }
 };
 
-module.exports = { generateInsight };
+const detectWithGemini = async (file) => {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-3-flash-preview",
+  });
+
+  const base64Image = file.buffer.toString("base64");
+
+  const result = await model.generateContent({
+    contents: [
+      {
+        parts: [
+          {
+            text: "Return only the food name in English. No explanation.",
+          },
+          {
+            inlineData: {
+              mimeType: file.mimetype,
+              data: base64Image,
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  let text = result.response.text();
+
+  text = text.toLowerCase().replace(".", "").split("\n")[0].trim();
+
+  return text;
+};
+
+module.exports = { generateInsight, detectWithGemini };

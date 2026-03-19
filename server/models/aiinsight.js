@@ -16,6 +16,9 @@ module.exports = (sequelize, DataTypes) => {
       userId: DataTypes.INTEGER,
       date: DataTypes.DATE,
       content: DataTypes.TEXT,
+      caloriesConsumed: DataTypes.INTEGER,
+      caloriesTarget: DataTypes.INTEGER,
+      status: DataTypes.STRING,
     },
     {
       sequelize,

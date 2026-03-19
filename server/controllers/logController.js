@@ -1,5 +1,7 @@
-const { Food, FoodLog } = require("../models");
+const { Food, FoodLog, AIInsight } = require("../models");
+const { Op } = require("sequelize");
 const logger = require("../helpers/logger");
+const { z, date } = require("zod");
 
 class LogController {
   // CREATE
@@ -17,6 +19,7 @@ class LogController {
         externalId,
         quantity,
         consumedAt,
+        mealType,
       } = req.body;
 
       // find or create food
@@ -39,14 +42,33 @@ class LogController {
       const log = await FoodLog.create({
         userId,
         foodId: food.id,
-        quantity: quantity || 1,
-        consumedAt: consumedAt || new Date(),
+        quantity: z.coerce
+          .number()
+          .min(1)
+          .parse(quantity || 1),
+        consumedAt: consumedAt ? z.coerce.date().parse(consumedAt) : new Date(),
+        mealType: mealType || "snack",
       });
 
-      res.status(201).json(log);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      await AIInsight.destroy({
+        where: {
+          userId,
+          date: {
+            [Op.gte]: today,
+          },
+        },
+      });
+
+      res.status(201).json({
+        status: "success",
+        data: log,
+        meta: null,
+      });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("Create Log Error", err.message);
     }
   }
 
@@ -61,10 +83,56 @@ class LogController {
         order: [["consumedAt", "DESC"]],
       });
 
-      res.json(logs);
+      res.json({
+        status: "success",
+        data: logs,
+        meta: {
+          total: logs.length,
+        },
+      });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("Get Logs Error", err.message);
+    }
+  }
+
+  // GET TODAY
+  static async getLogsToday(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const logs = await FoodLog.findAll({
+        where: {
+          userId,
+          consumedAt: {
+            [Op.gte]: today,
+          },
+        },
+        include: [{ model: Food }],
+        order: [["consumedAt", "DESC"]],
+      });
+
+      const totalCalories = logs.reduce((sum, log) => {
+        return sum + (log.Food?.calories || 0) * (log.quantity || 1);
+      }, 0);
+
+      res.json({
+        status: "success",
+        data: {
+          logs,
+          totalCalories,
+        },
+        meta: {
+          total: logs.length,
+          date: today.toISOString().split("T")[0],
+        },
+      });
+    } catch (err) {
+      next(err);
+      logger.error("Get Logs Today Error", err.message);
     }
   }
 
@@ -84,10 +152,25 @@ class LogController {
 
       await log.destroy();
 
-      res.json({ message: "Deleted" });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      await AIInsight.destroy({
+        where: {
+          userId,
+          date: {
+            [Op.gte]: today,
+          },
+        },
+      });
+
+      res.json({
+        status: "success",
+        message: "Deleted",
+        meta: null,
+      });
     } catch (err) {
       next(err);
-      logger.error(err);
+      logger.error("Delete Log Error", err.message);
     }
   }
 }

@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       foodId: DataTypes.INTEGER,
       quantity: DataTypes.INTEGER,
       consumedAt: DataTypes.DATE,
+      mealType: DataTypes.ENUM("breakfast", "lunch", "dinner", "snack"),
     },
     {
       sequelize,
