@@ -1,0 +1,155 @@
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router';
+import { detectFoodImage } from '../../services/foodService';
+import { createLog } from '../../services/logService';
+import toast from 'react-hot-toast';
+import { formatCalories } from '../../utils/formatCalories';
+
+const Detect = () => {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [detectionResult, setDetectionResult] = useState(null);
+  
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  const detectMutation = useMutation({
+    mutationFn: (formData) => detectFoodImage(formData),
+    onSuccess: (data) => {
+      // Backend returns { detected: string, options: Array }
+      setDetectionResult(data);
+      toast.success('Food detected successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Detection failed');
+    },
+  });
+
+  const logMutation = useMutation({
+    mutationFn: (logData) => createLog(logData),
+    onSuccess: () => {
+      toast.success('Food logged to your daily intake!');
+      setDetectionResult(null);
+      setSelectedImage(null);
+      setPreviewUrl(null);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Logging failed');
+    },
+  });
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setDetectionResult(null);
+    }
+  };
+
+  const handleDetect = () => {
+    if (!selectedImage) return;
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+    detectMutation.mutate(formData);
+  };
+
+  // Taking the best match from options
+  const bestMatch = detectionResult?.options?.[0];
+
+  const handleLog = () => {
+    if (!bestMatch) return;
+    logMutation.mutate({
+      name: bestMatch.name,
+      calories: bestMatch.calories,
+      food_id: bestMatch.id || 1,
+    });
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8 pb-12 animate-fade-in">
+      <header className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900">Detect Food</h1>
+        <p className="text-gray-500 mt-2">Upload an image to identify the dish and its calories.</p>
+      </header>
+
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
+        {previewUrl ? (
+          <div className="relative w-full aspect-square max-w-sm rounded-xl overflow-hidden mb-6 border-2 border-dashed border-gray-200">
+            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+            <button 
+              onClick={() => { setSelectedImage(null); setPreviewUrl(null); }}
+              className="absolute top-4 right-4 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 shadow-md"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <label className="w-full aspect-square max-w-sm flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition mb-6 text-center px-4">
+            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500">
+              <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <p className="text-sm">Click to upload or drag & drop food image</p>
+            </div>
+            <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+          </label>
+        )}
+
+        <button
+          onClick={handleDetect}
+          disabled={!selectedImage || detectMutation.isPending}
+          className={`w-full max-w-sm py-3 px-6 rounded-lg font-semibold text-white transition-all ${
+            !selectedImage || detectMutation.isPending ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {detectMutation.isPending ? 'Analyzing Image...' : 'Detect Nutrition'}
+        </button>
+      </div>
+
+      {detectionResult && (
+        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 animate-fade-in">
+          <h2 className="text-xl font-bold text-blue-900 mb-4">Results Found</h2>
+          
+          {bestMatch ? (
+            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm mb-6">
+              <div>
+                <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Detected Dish</p>
+                <p className="text-2xl font-bold text-gray-900 capitalize">{bestMatch.name}</p>
+                <p className="text-xs text-blue-400 italic">AI match: {detectionResult.detected}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Calories</p>
+                <p className="text-2xl font-bold text-blue-600">{formatCalories(bestMatch.calories)}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-xl text-center mb-6">
+              <p className="text-gray-500 font-medium">We identified this as <span className="font-bold text-blue-600">"{detectionResult.detected}"</span>, but couldn't find exact nutritional data.</p>
+              <Link to="/search" className="text-blue-600 text-sm font-bold hover:underline mt-2 inline-block">Try manual search</Link>
+            </div>
+          )}
+          
+          {isAuthenticated ? (
+            <button
+              onClick={handleLog}
+              disabled={logMutation.isPending || !bestMatch}
+              className={`w-full py-4 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center ${
+                !bestMatch ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {logMutation.isPending ? 'Logging...' : 'Add to Daily Log'}
+            </button>
+          ) : (
+            <div className="text-center p-4 bg-white rounded-xl border border-blue-100 italic text-gray-600">
+              <Link to="/login" className="text-blue-600 font-bold hover:underline">Sign in</Link> to save this result to your daily log.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Detect;

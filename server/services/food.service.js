@@ -3,7 +3,6 @@ const { searchFatSecret } = require("./fatsecret.service.js");
 const logger = require("../helpers/logger.js");
 const { detectFoodHF } = require("./ai/detect.service.js");
 const { detectWithGemini } = require("./ai/gemini.service.js");
-const { Food, FoodLog } = require("../models");
 
 const searchFood = async (query) => {
   try {
