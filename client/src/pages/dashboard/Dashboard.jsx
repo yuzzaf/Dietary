@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { animate, stagger, createScope } from 'animejs';
 import { Link } from 'react-router';
 import { getLogsToday } from '../../services/logService';
 import { getInsight } from '../../services/insightService';
@@ -12,7 +11,6 @@ import Loader from '../../components/common/Loader';
 
 const Dashboard = () => {
   const root = useRef(null);
-  const scope = useRef(null);
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const { data: todayData, isLoading: logsLoading } = useQuery({
@@ -34,29 +32,42 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (isAuthenticated && !logsLoading && !insightLoading) {
-      scope.current = createScope({ root: root.current }).add(() => {
-        animate('.stat-card', {
-          translateY: [20, 0],
-          opacity: [0, 1],
-          delay: stagger(100),
-          easing: 'easeOutElastic(1, .8)',
-          duration: 800
-        });
-        
-        if (todayData?.logs?.length > 0) {
-          animate('.activity-log-item', {
-            translateX: [-20, 0],
-            opacity: [0, 1],
-            delay: stagger(100),
-            easing: 'easeOutQuad',
-            duration: 500
-          });
-        }
+    if (isAuthenticated && !logsLoading && !insightLoading && root.current) {
+      const statCards = root.current.querySelectorAll('.stat-card');
+      statCards.forEach((el, index) => {
+        el.animate(
+          [
+            { transform: 'translateY(20px)', opacity: 0 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ],
+          {
+            duration: 800,
+            delay: index * 100,
+            easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            fill: 'forwards'
+          }
+        );
       });
-      return () => scope.current.revert();
+      
+      if (todayData?.logs?.length > 0) {
+        const logItems = root.current.querySelectorAll('.activity-log-item');
+        logItems.forEach((el, index) => {
+          el.animate(
+            [
+              { transform: 'translateX(-20px)', opacity: 0 },
+              { transform: 'translateX(0)', opacity: 1 }
+            ],
+            {
+              duration: 500,
+              delay: index * 100,
+              easing: 'ease-out',
+              fill: 'forwards'
+            }
+          );
+        });
+      }
     }
-  }, [isAuthenticated, logsLoading, insightLoading]);
+  }, [isAuthenticated, logsLoading, insightLoading, todayData]);
 
   if (isAuthenticated && (logsLoading || insightLoading || goalLoading)) return <Loader />;
 

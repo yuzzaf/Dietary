@@ -6,7 +6,6 @@ import { login, googleLogin, githubLogin } from '../../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { useEffect, useRef } from 'react';
-import { animate, createScope } from 'animejs';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
@@ -16,19 +15,17 @@ const Login = () => {
   const code = searchParams.get('code');
 
   const root = useRef(null);
-  const scope = useRef(null);
 
   useEffect(() => {
-    scope.current = createScope({ root: root.current }).add(() => {
-      animate('.login-container', {
-        translateY: [20, 0],
-        opacity: [0, 1],
-        easing: 'easeOutElastic(1, .8)',
-        duration: 800
-      });
-    });
-
-    return () => scope.current.revert();
+    if (root.current) {
+      const container = root.current.querySelector('.login-container');
+      if (container) {
+        container.animate(
+          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 800, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' }
+        );
+      }
+    }
   }, []);
 
   useEffect(() => {

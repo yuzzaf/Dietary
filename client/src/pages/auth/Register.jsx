@@ -3,34 +3,31 @@ import { useForm } from 'react-hook-form';
 import { register as registerUser } from '../../services/authService';
 import toast from 'react-hot-toast';
 import { useEffect, useRef } from 'react';
-import { animate, stagger, createScope } from 'animejs';
 
 const Register = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
 
   const root = useRef(null);
-  const scope = useRef(null);
 
   useEffect(() => {
-    scope.current = createScope({ root: root.current }).add(() => {
-      animate('.register-container', {
-        translateY: [20, 0],
-        opacity: [0, 1],
-        easing: 'easeOutQuad',
-        duration: 500
-      });
+    if (root.current) {
+      const container = root.current.querySelector('.register-container');
+      if (container) {
+        container.animate(
+          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 500, easing: 'ease-out', fill: 'forwards' }
+        );
+      }
       
-      animate('.form-group', {
-        translateX: [-20, 0],
-        opacity: [0, 1],
-        delay: stagger(100, { start: 200 }),
-        easing: 'easeOutQuad',
-        duration: 500
+      const formGroups = root.current.querySelectorAll('.form-group');
+      formGroups.forEach((el, index) => {
+        el.animate(
+          [{ transform: 'translateX(-20px)', opacity: 0 }, { transform: 'translateX(0)', opacity: 1 }],
+          { duration: 500, delay: 200 + (index * 100), easing: 'ease-out', fill: 'forwards' }
+        );
       });
-    });
-
-    return () => scope.current.revert();
+    }
   }, []);
 
   const onSubmit = async (data) => {

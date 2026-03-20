@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { animate, createScope } from 'animejs';
 import { useMutation } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router';
@@ -18,30 +17,28 @@ const Detect = () => {
   const navigate = useNavigate();
   
   const root = useRef(null);
-  const scope = useRef(null);
 
   useEffect(() => {
-    scope.current = createScope({ root: root.current }).add(() => {
-      animate('.detect-container', {
-        translateY: [20, 0],
-        opacity: [0, 1],
-        easing: 'easeOutElastic(1, .8)',
-        duration: 800
-      });
-    });
-    return () => scope.current.revert();
+    if (root.current) {
+      const container = root.current.querySelector('.detect-container');
+      if (container) {
+        container.animate(
+          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 800, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' }
+        );
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (detectionResult && scope.current) {
-      scope.current.add(() => {
-        animate('.detect-result', {
-          scale: [0.95, 1],
-          opacity: [0, 1],
-          easing: 'easeOutBack',
-          duration: 500
-        });
-      });
+    if (detectionResult && root.current) {
+      const resultEl = root.current.querySelector('.detect-result');
+      if (resultEl) {
+        resultEl.animate(
+          [{ transform: 'scale(0.95)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+          { duration: 500, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' }
+        );
+      }
     }
   }, [detectionResult]);
 

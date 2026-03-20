@@ -5,12 +5,10 @@ import { getProfile, updateProfile, updateProfilePicture } from '../../services/
 import { getGoal, upsertGoal } from '../../services/goalService';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
-import { animate, stagger, createScope } from 'animejs';
 
 const Profile = () => {
   const queryClient = useQueryClient();
   const root = useRef(null);
-  const scope = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: user, isLoading } = useQuery({
@@ -75,24 +73,22 @@ const Profile = () => {
   }, [userData, userGoal, reset]);
 
   useEffect(() => {
-    if (!isLoading && !goalLoading) {
-      scope.current = createScope({ root: root.current }).add(() => {
-        animate('.profile-container', {
-          translateY: [20, 0],
-          opacity: [0, 1],
-          easing: 'easeOutElastic(1, .8)',
-          duration: 800
-        });
-
-        animate('.profile-card', {
-          translateY: [20, 0],
-          opacity: [0, 1],
-          delay: stagger(150, {start: 200}),
-          easing: 'easeOutQuad',
-          duration: 500
-        });
+    if (!isLoading && !goalLoading && root.current) {
+      const container = root.current.querySelector('.profile-container');
+      if (container) {
+        container.animate(
+          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 800, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' }
+        );
+      }
+      
+      const profileCards = root.current.querySelectorAll('.profile-card');
+      profileCards.forEach((el, index) => {
+        el.animate(
+          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 500, delay: 200 + (index * 150), easing: 'ease-out', fill: 'forwards' }
+        );
       });
-      return () => scope.current.revert();
     }
   }, [isLoading, goalLoading]);
 
