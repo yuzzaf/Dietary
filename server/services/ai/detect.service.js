@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const detectFoodHF = async (file) => {
   const response = await axios.post(
-    "https://api-inference.huggingface.co/models/nateraw/food",
+    "https://api-inference.huggingface.co/models/prithivMLmods/Food-101-93M",
     file.buffer,
     {
       headers: {

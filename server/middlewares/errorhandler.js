@@ -16,7 +16,8 @@ const errorHandler = (err, req, res, next) => {
     case "TooManyRequests":
       return res.status(429).json({ message: err.message || "Too Many Requests" });
     default:
-      return res.status(500).json({ message: "Internal Server Error" });
+      console.error("GLOBAL ERROR HANDLER:", err);
+      return res.status(500).json({ message: "Internal Server Error", detail: err.message, stack: err.stack });
   }
 };
 

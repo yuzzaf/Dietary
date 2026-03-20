@@ -2,10 +2,36 @@ import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { register as registerUser } from '../../services/authService';
 import toast from 'react-hot-toast';
+import { useEffect, useRef } from 'react';
+import { animate, stagger, createScope } from 'animejs';
 
 const Register = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const navigate = useNavigate();
+
+  const root = useRef(null);
+  const scope = useRef(null);
+
+  useEffect(() => {
+    scope.current = createScope({ root: root.current }).add(() => {
+      animate('.register-container', {
+        translateY: [20, 0],
+        opacity: [0, 1],
+        easing: 'easeOutQuad',
+        duration: 500
+      });
+      
+      animate('.form-group', {
+        translateX: [-20, 0],
+        opacity: [0, 1],
+        delay: stagger(100, { start: 200 }),
+        easing: 'easeOutQuad',
+        duration: 500
+      });
+    });
+
+    return () => scope.current.revert();
+  }, []);
 
   const onSubmit = async (data) => {
     const toastId = toast.loading('Creating account...');
@@ -20,10 +46,11 @@ const Register = () => {
   };
 
   return (
-    <div>
+    <div ref={root}>
+      <div className="register-container opacity-0">
       <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">Create new account</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div>
+        <div className="form-group opacity-0">
           <label className="block text-sm font-medium text-gray-700">Username</label>
           <input 
             type="text" 
@@ -32,7 +59,7 @@ const Register = () => {
           />
           {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
         </div>
-        <div>
+        <div className="form-group opacity-0">
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input 
             type="email" 
@@ -41,7 +68,7 @@ const Register = () => {
           />
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
         </div>
-        <div>
+        <div className="form-group opacity-0">
           <label className="block text-sm font-medium text-gray-700">Password</label>
           <input 
             type="password" 
@@ -52,7 +79,7 @@ const Register = () => {
         </div>
         <button 
           type="submit" 
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="form-group opacity-0 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Register
         </button>
@@ -62,6 +89,7 @@ const Register = () => {
           Already have an account?{' '}
           <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">Sign in</Link>
         </p>
+      </div>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ Instructions:
 `;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
@@ -41,7 +41,7 @@ Instructions:
 
 const detectWithGemini = async (file) => {
   const model = genAI.getGenerativeModel({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash-lite",
   });
 
   const base64Image = file.buffer.toString("base64");

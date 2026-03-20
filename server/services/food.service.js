@@ -64,36 +64,20 @@ const detectFoodService = async (file) => {
   } catch {
     hfResult = null;
   }
+  
+  let detected = hfResult?.label ? normalizeLabel(hfResult.label) : null;
 
-  try {
-    geminiResult = await detectWithGemini(file);
-  } catch {
-    geminiResult = null;
+  if (!detected) {
+    try {
+      geminiResult = await detectWithGemini(file);
+      detected = geminiResult ? normalizeLabel(geminiResult) : null;
+    } catch {
+      geminiResult = null;
+    }
   }
 
-  const hfLabel = hfResult?.label ? normalizeLabel(hfResult.label) : null;
-
-  const geminiLabel = geminiResult ? normalizeLabel(geminiResult) : null;
-
-  let detected;
-
-  if (hfResult && hfResult.score >= 0.7) {
-    detected = hfLabel;
-  } else if (geminiLabel) {
-    detected = geminiLabel;
-  } else if (hfLabel) {
-    detected = hfLabel;
-  } else {
-    throw { name: "BadRequest", message: "Detection failed" };
-  }
-
-  if (
-    hfLabel &&
-    geminiLabel &&
-    geminiLabel.includes(hfLabel) &&
-    geminiLabel.length > hfLabel.length
-  ) {
-    detected = geminiLabel;
+  if (!detected) {
+    throw { name: "BadRequest", message: "Detection failed. The AI model is currently loading or your API limit is reached. Please try again in a few minutes." };
   }
 
   const results = await searchFood(detected);

@@ -28,12 +28,13 @@ const calculateTDEE = (user) => {
 };
 
 const calculateTotalCalories = (logs) => {
-  return logs.reduce((total, log) => {
+  const sum = logs.reduce((total, log) => {
     const calories = log.Food?.calories || 0;
     const qty = log.quantity || 1;
 
     return total + calories * qty;
   }, 0);
+  return Math.round(sum);
 };
 
 const calculateUserTarget = (user, goal) => {
@@ -41,7 +42,7 @@ const calculateUserTarget = (user, goal) => {
 
   if (!goal) return tdee;
 
-  if (goal.targetCalories) return goal.targetCalories;
+  if (goal.targetCalories) return Math.round(goal.targetCalories);
 
   if (goal.goalType === "cutting") return tdee - 300;
   if (goal.goalType === "bulking") return tdee + 300;

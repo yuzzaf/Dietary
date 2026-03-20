@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { animate, stagger, createScope } from 'animejs';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router';
@@ -14,11 +15,40 @@ const Search = () => {
   
   const { isAuthenticated } = useSelector((state) => state.auth);
 
+  const root = useRef(null);
+  const scope = useRef(null);
+
+  useEffect(() => {
+    scope.current = createScope({ root: root.current }).add(() => {
+      animate('.search-container', {
+        translateY: [20, 0],
+        opacity: [0, 1],
+        easing: 'easeOutElastic(1, .8)',
+        duration: 800
+      });
+    });
+    return () => scope.current.revert();
+  }, []);
+
   const { data: results, isLoading } = useQuery({
     queryKey: ['food-search', searchTerm],
     queryFn: () => searchFood(searchTerm),
     enabled: !!searchTerm,
   });
+
+  useEffect(() => {
+    if (results && results.length > 0 && !isLoading && scope.current) {
+      scope.current.add(() => {
+        animate('.search-result-item', {
+          translateY: [20, 0],
+          opacity: [0, 1],
+          delay: stagger(100),
+          easing: 'easeOutQuad',
+          duration: 400
+        });
+      });
+    }
+  }, [results, isLoading]);
 
   const logMutation = useMutation({
     mutationFn: (logData) => createLog(logData),
@@ -44,7 +74,8 @@ const Search = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div ref={root}>
+      <div className="search-container opacity-0 max-w-4xl mx-auto space-y-6">
       <header>
         <h1 className="text-3xl font-bold text-gray-900">Search Food</h1>
         <p className="text-gray-500 mt-2">Search our database for nutritional info and log your meals.</p>
@@ -72,8 +103,8 @@ const Search = () => {
         {isLoading ? (
           <div className="col-span-2 py-12"><Loader /></div>
         ) : results?.length > 0 ? (
-          results.map((food) => (
-            <div key={food.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group hover:border-blue-200 transition">
+          results.map((food, index) => (
+            <div key={food.id || `search-result-${index}`} className="search-result-item opacity-0 bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center group hover:border-blue-200 transition">
               <div>
                 <h3 className="font-bold text-gray-900 capitalize text-lg">{food.name}</h3>
                 <p className="text-blue-600 font-semibold">{formatCalories(food.calories)}</p>
@@ -103,6 +134,7 @@ const Search = () => {
         ) : searchTerm ? (
           <p className="col-span-2 text-center text-gray-500 py-12">No results found for "{searchTerm}"</p>
         ) : null}
+      </div>
       </div>
     </div>
   );

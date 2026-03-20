@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { animate, createScope } from 'animejs';
 import { useMutation } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { detectFoodImage } from '../../services/foodService';
 import { createLog } from '../../services/logService';
 import toast from 'react-hot-toast';
@@ -11,14 +12,45 @@ const Detect = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [detectionResult, setDetectionResult] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  
+  const root = useRef(null);
+  const scope = useRef(null);
+
+  useEffect(() => {
+    scope.current = createScope({ root: root.current }).add(() => {
+      animate('.detect-container', {
+        translateY: [20, 0],
+        opacity: [0, 1],
+        easing: 'easeOutElastic(1, .8)',
+        duration: 800
+      });
+    });
+    return () => scope.current.revert();
+  }, []);
+
+  useEffect(() => {
+    if (detectionResult && scope.current) {
+      scope.current.add(() => {
+        animate('.detect-result', {
+          scale: [0.95, 1],
+          opacity: [0, 1],
+          easing: 'easeOutBack',
+          duration: 500
+        });
+      });
+    }
+  }, [detectionResult]);
 
   const detectMutation = useMutation({
     mutationFn: (formData) => detectFoodImage(formData),
     onSuccess: (data) => {
       // Backend returns { detected: string, options: Array }
       setDetectionResult(data);
+      setQuantity(1);
       toast.success('Food detected successfully!');
     },
     onError: (error) => {
@@ -33,6 +65,7 @@ const Detect = () => {
       setDetectionResult(null);
       setSelectedImage(null);
       setPreviewUrl(null);
+      navigate('/');
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Logging failed');
@@ -64,11 +97,13 @@ const Detect = () => {
       name: bestMatch.name,
       calories: bestMatch.calories,
       food_id: bestMatch.id || 1,
+      quantity: Number(quantity) || 1,
     });
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 pb-12 animate-fade-in">
+    <div ref={root}>
+      <div className="detect-container opacity-0 max-w-2xl mx-auto space-y-8 pb-12">
       <header className="text-center">
         <h1 className="text-3xl font-bold text-gray-900">Detect Food</h1>
         <p className="text-gray-500 mt-2">Upload an image to identify the dish and its calories.</p>
@@ -109,7 +144,7 @@ const Detect = () => {
       </div>
 
       {detectionResult && (
-        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 animate-fade-in">
+        <div className="detect-result opacity-0 bg-blue-50 p-6 rounded-2xl border border-blue-100">
           <h2 className="text-xl font-bold text-blue-900 mb-4">Results Found</h2>
           
           {bestMatch ? (
@@ -132,15 +167,33 @@ const Detect = () => {
           )}
           
           {isAuthenticated ? (
-            <button
-              onClick={handleLog}
-              disabled={logMutation.isPending || !bestMatch}
-              className={`w-full py-4 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center ${
-                !bestMatch ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {logMutation.isPending ? 'Logging...' : 'Add to Daily Log'}
-            </button>
+            <div className="space-y-4">
+              {bestMatch && (
+                <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <label className="text-sm font-bold text-gray-700 whitespace-nowrap">Quantity:</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-200 outline-none text-gray-900 font-medium"
+                  />
+                  <span className="text-sm text-gray-500">
+                    Total: <strong className="text-blue-600">{formatCalories((bestMatch.calories * quantity) || bestMatch.calories)}</strong>
+                  </span>
+                </div>
+              )}
+              
+              <button
+                onClick={handleLog}
+                disabled={logMutation.isPending || !bestMatch}
+                className={`w-full py-4 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center ${
+                  !bestMatch ? 'bg-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {logMutation.isPending ? 'Logging...' : 'Add to Daily Log'}
+              </button>
+            </div>
           ) : (
             <div className="text-center p-4 bg-white rounded-xl border border-blue-100 italic text-gray-600">
               <Link to="/login" className="text-blue-600 font-bold hover:underline">Sign in</Link> to save this result to your daily log.
@@ -148,6 +201,7 @@ const Detect = () => {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 };

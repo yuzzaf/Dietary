@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { getProfile, updateProfile, updateProfilePicture } from '../../services/userService';
+import { getGoal, upsertGoal } from '../../services/goalService';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
+import { animate, stagger, createScope } from 'animejs';
 
 const Profile = () => {
   const queryClient = useQueryClient();
+  const root = useRef(null);
+  const scope = useRef(null);
   const [isEditing, setIsEditing] = useState(false);
 
   const { data: user, isLoading } = useQuery({
@@ -15,6 +19,13 @@ const Profile = () => {
   });
 
   const userData = user?.data || user;
+
+  const { data: goalDataRes, isLoading: goalLoading } = useQuery({
+    queryKey: ['user-goal'],
+    queryFn: getGoal,
+  });
+
+  const userGoal = goalDataRes?.data || null;
 
   const photoMutation = useMutation({
     mutationFn: (formData) => updateProfilePicture(formData),
@@ -43,21 +54,47 @@ const Profile = () => {
       age: userData?.age || '',
       gender: userData?.gender || '',
       activityLevel: userData?.activityLevel || 'moderate',
+      goalType: userGoal?.goalType || 'maintain',
+      targetCalories: userGoal?.targetCalories || '',
     }
   });
 
   // Sync form with data when it loads
   useEffect(() => {
-    if (userData) {
+    if (userData || userGoal) {
       reset({
-        weight: userData.weight || '',
-        height: userData.height || '',
-        age: userData.age || '',
-        gender: userData.gender || '',
-        activityLevel: userData.activityLevel || 'moderate',
+        weight: userData?.weight || '',
+        height: userData?.height || '',
+        age: userData?.age || '',
+        gender: userData?.gender || '',
+        activityLevel: userData?.activityLevel || 'moderate',
+        goalType: userGoal?.goalType || 'maintain',
+        targetCalories: userGoal?.targetCalories || '',
       });
     }
-  }, [userData, reset]);
+  }, [userData, userGoal, reset]);
+
+  useEffect(() => {
+    if (!isLoading && !goalLoading) {
+      scope.current = createScope({ root: root.current }).add(() => {
+        animate('.profile-container', {
+          translateY: [20, 0],
+          opacity: [0, 1],
+          easing: 'easeOutElastic(1, .8)',
+          duration: 800
+        });
+
+        animate('.profile-card', {
+          translateY: [20, 0],
+          opacity: [0, 1],
+          delay: stagger(150, {start: 200}),
+          easing: 'easeOutQuad',
+          duration: 500
+        });
+      });
+      return () => scope.current.revert();
+    }
+  }, [isLoading, goalLoading]);
 
   const updateMutation = useMutation({
     mutationFn: (data) => updateProfile(data),
@@ -71,14 +108,39 @@ const Profile = () => {
     }
   });
 
-  if (isLoading) return <Loader />;
+  const goalMutation = useMutation({
+    mutationFn: (data) => upsertGoal(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-goal'] });
+      queryClient.invalidateQueries({ queryKey: ['ai-insight'] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Goal update failed');
+    }
+  });
+
+  if (isLoading || goalLoading) return <Loader />;
 
   const onSubmit = (data) => {
-    updateMutation.mutate(data);
+    updateMutation.mutate({
+      weight: data.weight,
+      height: data.height,
+      age: data.age,
+      gender: data.gender,
+      activityLevel: data.activityLevel
+    });
+    
+    if (data.goalType && data.targetCalories) {
+      goalMutation.mutate({
+        goalType: data.goalType,
+        targetCalories: data.targetCalories
+      });
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-fade-in">
+    <div ref={root}>
+      <div className="profile-container opacity-0 max-w-4xl mx-auto space-y-8 pb-12">
       <header className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">User Profile</h1>
@@ -96,7 +158,7 @@ const Profile = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Simple Info Card */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="profile-card opacity-0 lg:col-span-1 space-y-6">
           <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
             <div className="relative group cursor-pointer">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-black mb-6 border-4 border-white shadow-xl overflow-hidden">
@@ -140,7 +202,7 @@ const Profile = () => {
         </div>
 
         {/* Form area */}
-        <div className="lg:col-span-2">
+        <div className="profile-card opacity-0 lg:col-span-2">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
               <h3 className="text-lg font-bold text-gray-800">Physical Metrics</h3>
@@ -155,6 +217,13 @@ const Profile = () => {
                   <MetricView label="Gender" value={userData?.gender} icon="🚻" />
                   <div className="col-span-2">
                     <MetricView label="Activity Level" value={userData?.activityLevel} icon="⚡" full />
+                  </div>
+                  <div className="col-span-2 border-t border-gray-100 pt-6 mt-2">
+                    <h4 className="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wider">Nutrition Goals</h4>
+                    <div className="grid grid-cols-2 gap-8">
+                      <MetricView label="Goal Type" value={userGoal?.goalType?.replace('_', ' ')} icon="🎯" />
+                      <MetricView label="Target Calories" value={userGoal?.targetCalories} unit="kcal" icon="🔥" />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -202,6 +271,31 @@ const Profile = () => {
                         <option value="active">Active (Daily exercise/Physical job)</option>
                       </select>
                     </div>
+
+                    <div className="col-span-1 md:col-span-2 mt-4 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="col-span-1 md:col-span-2">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Nutrition Goals</h4>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 ml-1">Goal Type</label>
+                        <select 
+                          {...register('goalType')}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none"
+                        >
+                          <option value="lose_weight">Lose Weight</option>
+                          <option value="maintain">Maintain</option>
+                          <option value="gain_weight">Gain Weight</option>
+                        </select>
+                      </div>
+
+                      <FormInput 
+                        label="Target Calories (kcal)" 
+                        type="number"
+                        register={register('targetCalories')}
+                        error={errors.targetCalories}
+                      />
+                    </div>
                   </div>
 
                   <div className="flex gap-4 pt-4">
@@ -225,6 +319,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

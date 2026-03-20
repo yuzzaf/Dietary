@@ -5,11 +5,29 @@ import { setCredentials } from '../../store/slices/authSlice';
 import { login, googleLogin } from '../../services/authService';
 import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
+import { useEffect, useRef } from 'react';
+import { animate, createScope } from 'animejs';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const root = useRef(null);
+  const scope = useRef(null);
+
+  useEffect(() => {
+    scope.current = createScope({ root: root.current }).add(() => {
+      animate('.login-container', {
+        translateY: [20, 0],
+        opacity: [0, 1],
+        easing: 'easeOutElastic(1, .8)',
+        duration: 800
+      });
+    });
+
+    return () => scope.current.revert();
+  }, []);
 
   const onSubmit = async (data) => {
     const toastId = toast.loading('Logging in...');
@@ -38,7 +56,8 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div ref={root}>
+      <div className="login-container opacity-0">
       <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">Sign in to your account</h2>
       
       {/* Standard Form */}
@@ -93,6 +112,7 @@ const Login = () => {
           Don't have an account?{' '}
           <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">Sign up</Link>
         </p>
+      </div>
       </div>
     </div>
   );

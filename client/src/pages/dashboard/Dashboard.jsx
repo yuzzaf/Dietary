@@ -1,12 +1,18 @@
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
+import { animate, stagger, createScope } from 'animejs';
 import { Link } from 'react-router';
 import { getLogsToday } from '../../services/logService';
 import { getInsight } from '../../services/insightService';
+import { getGoal } from '../../services/goalService';
 import { formatCalories } from '../../utils/formatCalories';
 import Loader from '../../components/common/Loader';
 
 const Dashboard = () => {
+  const root = useRef(null);
+  const scope = useRef(null);
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   const { data: todayData, isLoading: logsLoading } = useQuery({
@@ -21,7 +27,38 @@ const Dashboard = () => {
     enabled: isAuthenticated,
   });
 
-  if (isAuthenticated && (logsLoading || insightLoading)) return <Loader />;
+  const { data: goalDataRes, isLoading: goalLoading } = useQuery({
+    queryKey: ['user-goal'],
+    queryFn: getGoal,
+    enabled: isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (isAuthenticated && !logsLoading && !insightLoading) {
+      scope.current = createScope({ root: root.current }).add(() => {
+        animate('.stat-card', {
+          translateY: [20, 0],
+          opacity: [0, 1],
+          delay: stagger(100),
+          easing: 'easeOutElastic(1, .8)',
+          duration: 800
+        });
+        
+        if (todayData?.logs?.length > 0) {
+          animate('.activity-log-item', {
+            translateX: [-20, 0],
+            opacity: [0, 1],
+            delay: stagger(100),
+            easing: 'easeOutQuad',
+            duration: 500
+          });
+        }
+      });
+      return () => scope.current.revert();
+    }
+  }, [isAuthenticated, logsLoading, insightLoading]);
+
+  if (isAuthenticated && (logsLoading || insightLoading || goalLoading)) return <Loader />;
 
   if (!isAuthenticated) {
     return (
@@ -91,26 +128,32 @@ const Dashboard = () => {
   const logs = todayData?.logs || [];
   const totalCalories = todayData?.totalCalories || 0;
   const insight = insightData?.insight;
+  const userGoal = goalDataRes?.data;
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
+    <div ref={root} className="space-y-6 pb-12 animate-fade-in">
       <header className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Daily Dashboard</h1>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
+        <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition">
              <svg className="w-24 h-24 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
           </div>
           <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-2">Today's Calories</h2>
-          <p className="text-5xl font-black text-blue-600">{formatCalories(totalCalories)}</p>
+          <p className="text-5xl font-black text-blue-600">
+            {formatCalories(totalCalories)}
+            {userGoal?.targetCalories && (
+              <span className="text-2xl text-gray-400 font-medium tracking-normal"> / {formatCalories(userGoal.targetCalories)}</span>
+            )}
+          </p>
           <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
             {logs.length} items logged
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-4">AI Insight</h2>
           <div className="prose prose-sm text-gray-600 leading-relaxed italic">
             {insight ? (
@@ -127,9 +170,12 @@ const Dashboard = () => {
         {logs.length > 0 ? (
           <ul className="divide-y divide-gray-100">
             {logs.slice(0, 5).map((log) => (
-              <li key={log.id} className="py-4 flex justify-between items-center hover:bg-gray-50 transition px-2 rounded-xl">
+              <li key={log.id} className="activity-log-item py-4 flex justify-between items-center hover:bg-gray-50 transition px-2 rounded-xl opacity-0">
                 <div>
-                  <p className="font-bold text-gray-800 capitalize">{log.Food?.name || 'Unknown Item'}</p>
+                  <p className="font-bold text-gray-800 capitalize">
+                    {log.Food?.name || 'Unknown Item'}
+                    <span className="text-xs text-gray-500 font-normal ml-2 lowercase">x{log.quantity || 1}</span>
+                  </p>
                   <p className="text-xs text-gray-400 font-medium">{new Date(log.consumedAt || log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
                 <p className="font-black text-gray-700">{formatCalories(log.Food?.calories * log.quantity || 0)}</p>
