@@ -14,3 +14,8 @@ export const googleLogin = async (id_token) => {
   const response = await api.post('/auth/google-login', { id_token });
   return response.data;
 };
+
+export const githubLogin = async (code) => {
+  const response = await api.post('/auth/github-login', { code });
+  return response.data;
+};

@@ -48,6 +48,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       googleId: DataTypes.STRING,
+      githubId: DataTypes.STRING,
       firstName: {
         type: DataTypes.STRING,
         allowNull: false,

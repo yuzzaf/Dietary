@@ -106,6 +106,72 @@ const AuthController = class AuthController {
       next(err);
     }
   }
+
+  // GITHUB LOGIN
+  static async githubLogin(req, res, next) {
+    try {
+      const { code } = req.body;
+      if (!code) throw { name: "BadRequest", message: "GitHub code required" };
+
+      // 1. Exchange code for access token
+      const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID,
+          client_secret: process.env.GITHUB_CLIENT_SECRET,
+          code,
+        }),
+      });
+      const tokenData = await tokenResponse.json();
+      if (tokenData.error) throw { name: "Unauthorized", message: tokenData.error_description || "Invalid GitHub token" };
+      const accessToken = tokenData.access_token;
+
+      // 2. Fetch user profile
+      const userResponse = await fetch("https://api.github.com/user", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const githubProfile = await userResponse.json();
+
+      // 3. Fetch primary email (since profile email can be null if private)
+      const emailsResponse = await fetch("https://api.github.com/user/emails", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const emailsData = await emailsResponse.json();
+      const primaryEmailObj = emailsData.find((e) => e.primary) || emailsData[0];
+      const email = primaryEmailObj?.email;
+
+      if (!email) throw { name: "BadRequest", message: "GitHub email not found" };
+
+      const firstName = githubProfile.name?.split(" ")[0] || githubProfile.login || "User";
+      const lastName = githubProfile.name?.split(" ").slice(1).join(" ") || "-";
+
+      let user = await User.findOne({ where: { email } });
+
+      if (!user) {
+        user = await User.create({
+          email,
+          githubId: githubProfile.id.toString(),
+          password: crypto.randomBytes(16).toString("hex"),
+          firstName,
+          lastName,
+          profilePicture: githubProfile.avatar_url,
+        });
+      } else if (!user.githubId) {
+        await user.update({ githubId: githubProfile.id.toString() });
+      }
+
+      const access_token = signToken({ id: user.id });
+
+      res.json({ access_token });
+    } catch (err) {
+      console.error('GitHub Login Error:', err);
+      next(err);
+    }
+  }
 };
 
 module.exports = AuthController;
