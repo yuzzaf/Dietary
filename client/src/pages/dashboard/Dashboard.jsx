@@ -8,6 +8,7 @@ import { getInsight } from '../../services/insightService';
 import { getGoal } from '../../services/goalService';
 import { formatCalories } from '../../utils/formatCalories';
 import Loader from '../../components/common/Loader';
+import TypewriterText from '../../components/common/TypewriterText';
 
 const Dashboard = () => {
   const root = useRef(null);
@@ -79,9 +80,8 @@ const Dashboard = () => {
           <h1 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight">
             Master Your Nutrition with <span className="text-blue-600">AI Intelligence</span>
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed">
-            The smartest way to track your daily calories. Just snap a photo or search our database.
-            Get personalized insights driven by advanced AI.
+          <p className="text-xl text-gray-600 leading-relaxed min-h-[84px]">
+            <TypewriterText text="The smartest way to track your daily calories. Just snap a photo or search our database. Get personalized insights driven by advanced AI." />
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link 
