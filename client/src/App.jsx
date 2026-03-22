@@ -5,6 +5,7 @@ import { store } from './store';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import AppRoutes from './routes/AppRoutes';
+import InteractiveGrid from './components/common/InteractiveGrid';
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ function App() {
       <GoogleOAuthProvider clientId={googleClientId}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
+            <InteractiveGrid />
             <Toaster position="top-center" />
             <AppRoutes />
           </BrowserRouter>
