@@ -10,7 +10,7 @@ describe("ErrorHandler Middleware", () => {
       json: jest.fn(),
     };
     mockNext = jest.fn();
-    console.error = jest.fn(); // Matikan console log error agar terminal test rapi
+    console.error = jest.fn();
   });
 
   it("should handle BadRequest correctly", () => {
@@ -21,9 +21,19 @@ describe("ErrorHandler Middleware", () => {
   });
 
   it("should handle Sequelize errors as 400", () => {
-    errorHandler({ name: "SequelizeValidationError" }, mockReq, mockRes, mockNext);
+    errorHandler(
+      {
+        name: "SequelizeValidationError",
+        errors: [{ message: "First name is required" }],
+      },
+      mockReq,
+      mockRes,
+      mockNext,
+    );
     expect(mockRes.status).toHaveBeenCalledWith(400);
-    expect(mockRes.json).toHaveBeenCalledWith({ message: "Bad Request" }); // default message if err.message empty
+    expect(mockRes.json).toHaveBeenCalledWith({
+      message: "First name is required",
+    });
   });
 
   it("should handle Unauthorized / JWT Error correctly", () => {
@@ -39,12 +49,22 @@ describe("ErrorHandler Middleware", () => {
   });
 
   it("should handle NotFound as 404", () => {
-    errorHandler({ name: "NotFound", message: "Data tidak ada" }, mockReq, mockRes, mockNext);
+    errorHandler(
+      { name: "NotFound", message: "Data tidak ada" },
+      mockReq,
+      mockRes,
+      mockNext,
+    );
     expect(mockRes.status).toHaveBeenCalledWith(404);
   });
 
   it("should handle TooManyRequests as 429", () => {
-    errorHandler({ name: "TooManyRequests", message: "Limit" }, mockReq, mockRes, mockNext);
+    errorHandler(
+      { name: "TooManyRequests", message: "Limit" },
+      mockReq,
+      mockRes,
+      mockNext,
+    );
     expect(mockRes.status).toHaveBeenCalledWith(429);
   });
 
@@ -53,7 +73,10 @@ describe("ErrorHandler Middleware", () => {
     errorHandler(err, mockReq, mockRes, mockNext);
     expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Internal Server Error", detail: "Something exploded" })
+      expect.objectContaining({
+        message: "Internal Server Error",
+        detail: "Something exploded",
+      }),
     );
   });
 });

@@ -1,8 +1,9 @@
 const errorHandler = (err, req, res, next) => {
   switch (err.name) {
-    case "BadRequest":
     case "SequelizeValidationError":
     case "SequelizeUniqueConstraintError":
+      return res.status(400).json({ message: err.errors[0].message });
+    case "BadRequest":
     case "MulterError":
       return res.status(400).json({ message: err.message || "Bad Request" });
     case "Unauthorized":

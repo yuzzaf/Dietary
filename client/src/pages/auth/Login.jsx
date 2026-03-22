@@ -95,7 +95,10 @@ const Login = () => {
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Password</label>
+          <div className="flex justify-between items-center">
+            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">Forgot password?</Link>
+          </div>
           <input 
             type="password" 
             {...register('password', { required: 'Password is required' })} 

@@ -3,6 +3,7 @@ const { hashPassword, comparePassword } = require("../helpers/bcrypt.js");
 const { signToken } = require("../helpers/jwt.js");
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -114,20 +115,27 @@ const AuthController = class AuthController {
       if (!code) throw { name: "BadRequest", message: "GitHub code required" };
 
       // 1. Exchange code for access token
-      const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+      const tokenResponse = await fetch(
+        "https://github.com/login/oauth/access_token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            client_id: process.env.GITHUB_CLIENT_ID,
+            client_secret: process.env.GITHUB_CLIENT_SECRET,
+            code,
+          }),
         },
-        body: JSON.stringify({
-          client_id: process.env.GITHUB_CLIENT_ID,
-          client_secret: process.env.GITHUB_CLIENT_SECRET,
-          code,
-        }),
-      });
+      );
       const tokenData = await tokenResponse.json();
-      if (tokenData.error) throw { name: "Unauthorized", message: tokenData.error_description || "Invalid GitHub token" };
+      if (tokenData.error)
+        throw {
+          name: "Unauthorized",
+          message: tokenData.error_description || "Invalid GitHub token",
+        };
       const accessToken = tokenData.access_token;
 
       // 2. Fetch user profile
@@ -137,7 +145,10 @@ const AuthController = class AuthController {
       const githubProfile = await userResponse.json();
 
       if (githubProfile.message || !githubProfile.id) {
-        throw { name: "Unauthorized", message: githubProfile.message || "Failed to fetch GitHub profile" };
+        throw {
+          name: "Unauthorized",
+          message: githubProfile.message || "Failed to fetch GitHub profile",
+        };
       }
 
       // 3. Fetch primary email (since profile email can be null if private)
@@ -145,16 +156,22 @@ const AuthController = class AuthController {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const emailsData = await emailsResponse.json();
-      
+
       let email = githubProfile.email;
       if (Array.isArray(emailsData)) {
-        const primaryEmailObj = emailsData.find((e) => e.primary) || emailsData[0];
+        const primaryEmailObj =
+          emailsData.find((e) => e.primary) || emailsData[0];
         if (primaryEmailObj) email = primaryEmailObj.email;
       }
 
-      if (!email) throw { name: "BadRequest", message: "GitHub email not found or private" };
+      if (!email)
+        throw {
+          name: "BadRequest",
+          message: "GitHub email not found or private",
+        };
 
-      const firstName = githubProfile.name?.split(" ")[0] || githubProfile.login || "User";
+      const firstName =
+        githubProfile.name?.split(" ")[0] || githubProfile.login || "User";
       const lastName = githubProfile.name?.split(" ").slice(1).join(" ") || "-";
 
       let user = await User.findOne({ where: { email } });
@@ -176,7 +193,99 @@ const AuthController = class AuthController {
 
       res.json({ access_token });
     } catch (err) {
-      console.error('GitHub Login Error:', err);
+      console.error("GitHub Login Error:", err);
+      next(err);
+    }
+  }
+
+  // FORGOT PASSWORD
+  static async forgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+      if (!email) throw { name: "BadRequest", message: "Email required" };
+
+      const user = await User.findOne({ where: { email } });
+      if (!user) {
+        // Untuk security, biasanya kita tidak memberitahu apakah emailnya salah atau tidak
+        return res.json({
+          message: "If that email is registered, a reset link has been sent.",
+        });
+      }
+
+      const token = crypto.randomBytes(32).toString("hex");
+      user.resetPasswordToken = token;
+      user.resetPasswordExpires = Date.now() + 3600000;
+      await user.save();
+
+      const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: `"Dietary App Support" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Dietary - Password Reset Request",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #2563eb;">Reset Your Password</h2>
+            <p>You requested a password reset. Click the button below to choose a new password. This link will expire in 1 hour.</p>
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 16px; margin-bottom: 16px;">
+              Reset Password
+            </a>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">If you did not request this, please ignore this email and your password will remain unchanged.</p>
+          </div>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      res.json({
+        message: "If that email is registered, a reset link has been sent.",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // RESET PASSWORD
+  static async resetPassword(req, res, next) {
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) {
+        throw {
+          name: "BadRequest",
+          message: "Token and new password required",
+        };
+      }
+
+      const { Op } = require("sequelize");
+      const user = await User.findOne({
+        where: {
+          resetPasswordToken: token,
+          resetPasswordExpires: { [Op.gt]: new Date() },
+        },
+      });
+
+      if (!user) {
+        throw {
+          name: "BadRequest",
+          message: "Invalid or expired password reset token",
+        };
+      }
+
+      user.password = await hashPassword(newPassword);
+      user.resetPasswordToken = null;
+      user.resetPasswordExpires = null;
+      await user.save();
+
+      res.json({ message: "Password has been successfully reset" });
+    } catch (err) {
       next(err);
     }
   }

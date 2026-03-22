@@ -1,6 +1,14 @@
 const request = require("supertest");
 const app = require("../app");
-const { sequelize } = require("../models");
+const { sequelize, User } = require("../models");
+const crypto = require("crypto");
+const { hashPassword } = require("../helpers/bcrypt");
+
+jest.mock("nodemailer", () => ({
+  createTransport: jest.fn().mockReturnValue({
+    sendMail: jest.fn().mockResolvedValue(true),
+  }),
+}));
 
 beforeAll(async () => {
   // Before auth tests run, clean Users table
@@ -130,6 +138,81 @@ describe("Authentication Endpoints", () => {
 
       expect(response.status).toBe(400);
       expect(response.body.message).toBe("GitHub code required");
+    });
+  });
+
+  describe("POST /api/auth/forgot-password", () => {
+    it("should successfully send reset link for registered email", async () => {
+      const response = await request(app).post("/api/auth/forgot-password").send({
+        email: "test@mail.com",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("If that email is registered, a reset link has been sent.");
+    });
+
+    it("should still return 200 for unregistered email (prevent email enumeration)", async () => {
+      const response = await request(app).post("/api/auth/forgot-password").send({
+        email: "notFound123@mail.com",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("If that email is registered, a reset link has been sent.");
+    });
+
+    it("should return 400 when email is missing", async () => {
+      const response = await request(app).post("/api/auth/forgot-password").send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Email required");
+    });
+  });
+
+  describe("POST /api/auth/reset-password", () => {
+    let validToken;
+    beforeAll(async () => {
+      // Setup a user with valid token first
+      const resetUser = await User.findOne({ where: { email: "test@mail.com" } });
+      validToken = crypto.randomBytes(32).toString("hex");
+      if (resetUser) {
+        resetUser.resetPasswordToken = validToken;
+        resetUser.resetPasswordExpires = Date.now() + 3600000;
+        await resetUser.save();
+      }
+    });
+
+    it("should return 400 when token and password missing", async () => {
+      const response = await request(app).post("/api/auth/reset-password").send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Token and new password required");
+    });
+
+    it("should return 400 for invalid token", async () => {
+      const response = await request(app).post("/api/auth/reset-password").send({
+        token: "invalidToken12345",
+        newPassword: "newpassword123"
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Invalid or expired password reset token");
+    });
+
+    it("should successfully reset password with valid token", async () => {
+      const response = await request(app).post("/api/auth/reset-password").send({
+        token: validToken,
+        newPassword: "supernewpassword"
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("Password has been successfully reset");
+      
+      // Verify login with new password
+      const loginRes = await request(app).post("/api/auth/login").send({
+        email: "test@mail.com",
+        password: "supernewpassword",
+      });
+      expect(loginRes.status).toBe(200);
     });
   });
 });

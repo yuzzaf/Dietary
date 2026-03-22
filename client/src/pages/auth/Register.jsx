@@ -47,14 +47,25 @@ const Register = () => {
       <div className="register-container opacity-0">
       <h2 className="text-center text-3xl font-extrabold text-gray-900 mb-6">Create new account</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="form-group opacity-0">
-          <label className="block text-sm font-medium text-gray-700">Username</label>
-          <input 
-            type="text" 
-            {...register('username', { required: 'Username is required' })} 
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-          />
-          {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
+        <div className="form-group opacity-0 flex gap-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
+            <input 
+              type="text" 
+              {...register('firstName', { required: 'First name is required' })} 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
+          </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <input 
+              type="text" 
+              {...register('lastName', { required: 'Last name is required' })} 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            />
+            {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
+          </div>
         </div>
         <div className="form-group opacity-0">
           <label className="block text-sm font-medium text-gray-700">Email</label>
