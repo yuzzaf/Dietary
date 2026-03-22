@@ -15,6 +15,7 @@ const Login = () => {
   const code = searchParams.get('code');
 
   const root = useRef(null);
+  const githubAttempted = useRef(false);
 
   useEffect(() => {
     if (root.current) {
@@ -29,10 +30,15 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
-    if (code) {
+    if (code && !githubAttempted.current) {
+      githubAttempted.current = true; // Kunci supaya React StrictMode tidak jalan 2x
+      
       const handleGithubOAuth = async () => {
         const toastId = toast.loading('Authenticating with GitHub...');
         try {
+          // Hapus `?code=xxx` dari address bar supaya tidak kepanggil lagi kalau user refresh
+          window.history.replaceState({}, document.title, '/login');
+
           const result = await githubLogin(code);
           dispatch(setCredentials({ token: result.access_token }));
           toast.success('GitHub Login successful!', { id: toastId });
@@ -40,7 +46,6 @@ const Login = () => {
         } catch (error) {
           const message = error.response?.data?.message || 'GitHub Login failed';
           toast.error(message, { id: toastId });
-          navigate('/login', { replace: true });
         }
       };
       handleGithubOAuth();

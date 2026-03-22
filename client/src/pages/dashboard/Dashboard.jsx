@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router';
 import { getLogsToday } from '../../services/logService';
-import { getInsight } from '../../services/insightService';
+import { getInsight, getWeeklyInsight } from '../../services/insightService';
 import { getGoal } from '../../services/goalService';
 import { formatCalories } from '../../utils/formatCalories';
 import Loader from '../../components/common/Loader';
@@ -26,6 +26,12 @@ const Dashboard = () => {
     enabled: isAuthenticated,
   });
 
+  const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
+    queryKey: ['ai-weekly-insight'],
+    queryFn: getWeeklyInsight,
+    enabled: isAuthenticated,
+  });
+
   const { data: goalDataRes, isLoading: goalLoading } = useQuery({
     queryKey: ['user-goal'],
     queryFn: getGoal,
@@ -33,7 +39,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (isAuthenticated && !logsLoading && !insightLoading && root.current) {
+    if (isAuthenticated && !logsLoading && !insightLoading && !weeklyLoading && root.current) {
       const statCards = root.current.querySelectorAll('.stat-card');
       statCards.forEach((el, index) => {
         el.animate(
@@ -68,9 +74,9 @@ const Dashboard = () => {
         });
       }
     }
-  }, [isAuthenticated, logsLoading, insightLoading, todayData]);
+  }, [isAuthenticated, logsLoading, insightLoading, weeklyLoading, todayData]);
 
-  if (isAuthenticated && (logsLoading || insightLoading || goalLoading)) return <Loader />;
+  if (isAuthenticated && (logsLoading || insightLoading || goalLoading || weeklyLoading)) return <Loader />;
 
   if (!isAuthenticated) {
     return (
@@ -131,6 +137,31 @@ const Dashboard = () => {
             <p className="text-gray-500">Receive personalized nutritional feedback to help you hit your daily health goals.</p>
           </div>
         </div>
+
+        {/* API Attribution Footer */}
+        <div className="mt-20 pt-8 border-t border-gray-100 w-full max-w-6xl flex flex-col items-center justify-center space-y-6">
+          <p className="text-sm font-bold text-gray-400 tracking-widest uppercase">Trusted Data Providers</p>
+          <div className="flex flex-col sm:flex-row items-center gap-12 opacity-80 hover:opacity-100 transition duration-300">
+            {/* FatSecret Badge */}
+            <a href="https://platform.fatsecret.com" target="_blank" rel="noopener noreferrer" className="hover:scale-105 transition">
+              <img 
+                alt="Nutrition information provided by fatsecret Platform API" 
+                src="https://platform.fatsecret.com/api/static/images/powered_by_fatsecret_horizontal_brand.svg" 
+                border="0"
+                className="h-8"
+              />
+            </a>
+            
+            {/* Edamam Badge */}
+            <a href="https://www.edamam.com" title="Powered by Edamam" target="_blank" rel="noopener noreferrer" className="hover:scale-105 transition">
+              <img 
+                alt="Powered by Edamam" 
+                src="https://developer.edamam.com/images/transparent.png" 
+                className="h-10" 
+              />
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
@@ -139,6 +170,7 @@ const Dashboard = () => {
   const logs = todayData?.logs || [];
   const totalCalories = todayData?.totalCalories || 0;
   const insight = insightData?.insight;
+  const weeklyInsights = weeklyData || [];
   const userGoal = goalDataRes?.data;
 
   return (
@@ -197,6 +229,34 @@ const Dashboard = () => {
           <div className="text-center py-12">
             <p className="text-gray-400 font-medium">No activity recorded today.</p>
             <Link to="/detect" className="text-blue-600 font-bold hover:underline mt-2 inline-block">Record your first meal</Link>
+          </div>
+        )}
+      </div>
+
+      <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-900 mb-6">Weekly AI Report</h2>
+        {weeklyInsights.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {weeklyInsights.map((wk) => (
+              <div key={wk.id} className="p-5 border border-gray-100 bg-gray-50 hover:bg-gray-100 transition rounded-2xl flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-sm font-bold text-gray-800">
+                    {new Date(wk.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </span>
+                  <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-md ${
+                    wk.status === 'balanced' ? 'bg-green-100 text-green-700' :
+                    wk.status === 'deficit' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {wk.status || 'unknown'}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 italic leading-relaxed">{wk.content}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-400 font-medium">No weekly data available yet. Keep logging your food to build your history!</p>
           </div>
         )}
       </div>

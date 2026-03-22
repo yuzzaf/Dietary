@@ -136,15 +136,23 @@ const AuthController = class AuthController {
       });
       const githubProfile = await userResponse.json();
 
+      if (githubProfile.message || !githubProfile.id) {
+        throw { name: "Unauthorized", message: githubProfile.message || "Failed to fetch GitHub profile" };
+      }
+
       // 3. Fetch primary email (since profile email can be null if private)
       const emailsResponse = await fetch("https://api.github.com/user/emails", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const emailsData = await emailsResponse.json();
-      const primaryEmailObj = emailsData.find((e) => e.primary) || emailsData[0];
-      const email = primaryEmailObj?.email;
+      
+      let email = githubProfile.email;
+      if (Array.isArray(emailsData)) {
+        const primaryEmailObj = emailsData.find((e) => e.primary) || emailsData[0];
+        if (primaryEmailObj) email = primaryEmailObj.email;
+      }
 
-      if (!email) throw { name: "BadRequest", message: "GitHub email not found" };
+      if (!email) throw { name: "BadRequest", message: "GitHub email not found or private" };
 
       const firstName = githubProfile.name?.split(" ")[0] || githubProfile.login || "User";
       const lastName = githubProfile.name?.split(" ").slice(1).join(" ") || "-";
