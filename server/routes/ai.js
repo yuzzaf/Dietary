@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get("/insight", authentication, AIController.generateInsight);
 router.get("/insight/weekly", authentication, AIController.getInsightsWeekly);
+router.post("/chat", authentication, AIController.handleChat);
 
 module.exports = router;

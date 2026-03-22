@@ -142,6 +142,25 @@ class AIController {
       logger.error("Weekly Insights Error", err.message);
     }
   }
+
+  static async handleChat(req, res, next) {
+    try {
+      const { message, history } = req.body;
+      if (!message) throw { name: "BadRequest", message: "Message is required" };
+
+      const { chatWithGemini } = require("../services/ai/gemini.service.js");
+      const reply = await chatWithGemini(history || [], message);
+
+      res.json({
+        status: "success",
+        data: {
+          reply
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 module.exports = AIController;

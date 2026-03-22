@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import AppRoutes from './routes/AppRoutes';
 import InteractiveGrid from './components/common/InteractiveGrid';
+import Chatbot from './components/common/Chatbot';
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <InteractiveGrid />
+            <Chatbot />
             <Toaster position="top-center" />
             <AppRoutes />
           </BrowserRouter>

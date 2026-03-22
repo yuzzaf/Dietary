@@ -71,4 +71,27 @@ const detectWithGemini = async (file) => {
   return text;
 };
 
-module.exports = { generateInsight, detectWithGemini };
+const chatWithGemini = async (history, message) => {
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash-lite",
+    systemInstruction: "You are a friendly expert nutritionist and AI assistant for the Dietary app. You answer questions about calories, diet, health, and fitness. Give short, concise, and highly effective answers (maximum 2-3 paragraphs). Be encouraging!"
+  });
+
+  try {
+    const chat = model.startChat({
+      history: history.map((msg) => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }],
+      })),
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    return response.text();
+  } catch (err) {
+    logger.error("Gemini Chat Error:", err.message);
+    throw { name: "InternalServerError", message: "AI is currently unavailable" };
+  }
+};
+
+module.exports = { generateInsight, detectWithGemini, chatWithGemini };
