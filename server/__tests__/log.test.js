@@ -33,6 +33,14 @@ afterAll(async () => {
 
 describe("Log Endpoints", () => {
   describe("POST /api/logs", () => {
+    it("should return 401 if missing token", async () => {
+      const response = await request(app).post("/api/logs").send({
+        name: "Apple",
+        calories: 95,
+      });
+      expect(response.status).toBe(401);
+    });
+
     it("should successfully create a food log", async () => {
       const response = await request(app)
         .post("/api/logs")
@@ -59,6 +67,11 @@ describe("Log Endpoints", () => {
   });
 
   describe("GET /api/logs", () => {
+    it("should return 401 if missing token", async () => {
+      const response = await request(app).get("/api/logs");
+      expect(response.status).toBe(401);
+    });
+
     it("should get all logs for user", async () => {
       const response = await request(app)
         .get("/api/logs")
@@ -73,6 +86,11 @@ describe("Log Endpoints", () => {
   });
 
   describe("GET /api/logs/today", () => {
+    it("should return 401 if missing token", async () => {
+      const response = await request(app).get("/api/logs/today");
+      expect(response.status).toBe(401);
+    });
+
     it("should return daily summary logs along with totalCalories calculation", async () => {
       const response = await request(app)
         .get("/api/logs/today")
@@ -89,6 +107,11 @@ describe("Log Endpoints", () => {
   });
 
   describe("DELETE /api/logs/:id", () => {
+    it("should return 401 if missing token", async () => {
+      const response = await request(app).delete("/api/logs/1");
+      expect(response.status).toBe(401);
+    });
+
     it("should return 404 for non-existent log", async () => {
       const response = await request(app)
         .delete("/api/logs/999999")

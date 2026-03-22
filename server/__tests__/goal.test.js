@@ -50,6 +50,11 @@ describe("Goal Endpoints", () => {
   });
 
   describe("POST /api/goals", () => {
+    it("should return 401 if missing token on create/update", async () => {
+      const response = await request(app).post("/api/goals").send({ goalType: "cutting", targetCalories: 1500 });
+      expect(response.status).toBe(401);
+    });
+
     it("should create a new goal if it doesn't exist", async () => {
       const response = await request(app)
         .post("/api/goals")
