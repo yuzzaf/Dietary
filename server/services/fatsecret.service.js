@@ -67,7 +67,7 @@ const searchFatSecret = async (query) => {
 };
 
 const extractNutrient = (description, nutrientName) => {
-  const regex = new RegExp(`${nutrientName}:\\s*([\\d.]+)\\s*g`);
+  const regex = new RegExp(`${nutrientName}:\\s*([\\d.]+)\\s*(?:kcal|g)?`, "i");
   const match = description.match(regex);
   return match ? parseFloat(match[1]) : 0;
 };

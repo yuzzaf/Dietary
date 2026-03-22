@@ -131,4 +131,34 @@ describe("Middlewares", () => {
       expect(res.body.message).toBe("Upload success");
     });
   });
+
+  describe("Rate Limiter Middleware", () => {
+    const { searchLimiter } = require("../middlewares/rateLimiter");
+    
+    const limitApp = express();
+    // Simulate real IP extraction for rate limit
+    limitApp.set("trust proxy", 1);
+    limitApp.get("/search", searchLimiter, (req, res) => {
+      res.status(200).json({ message: "Search OK" });
+    });
+
+    it("should return 429 when max search requests (20) are exceeded", async () => {
+      let responses = [];
+      
+      // Fire 21 requests to breach the limit (max is 20)
+      for (let i = 0; i < 21; i++) {
+        const res = await request(limitApp).get("/search");
+        responses.push(res);
+      }
+
+      // The first 20 should pass
+      for (let i = 0; i < 20; i++) {
+        expect(responses[i].status).toBe(200);
+      }
+
+      // The 21st must fail with 429
+      expect(responses[20].status).toBe(429);
+      expect(responses[20].body.message).toBe("Too many search requests");
+    });
+  });
 });
