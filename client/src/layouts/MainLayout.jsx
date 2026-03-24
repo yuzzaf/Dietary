@@ -83,7 +83,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-white border-t border-gray-100 py-8">
+      <footer className="bg-white border-t border-gray-100 py-8 relative z-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-sm text-gray-400">© 2026 Dietary. Driven by AI Nutrition Analysis.</p>
         </div>
