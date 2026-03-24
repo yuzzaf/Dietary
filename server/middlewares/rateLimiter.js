@@ -1,22 +1,19 @@
 const rateLimit = require("express-rate-limit");
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 menit
-  max: 1000,
-  message: {
-    message: "Too many requests, please try again later",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window`
+  message: { message: "Too many requests from this IP, please try again later" },
+  standardHeaders: true, 
+  legacyHeaders: false, 
 });
 
 const searchLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 menit
-  max: 100,
-
-  message: {
-    message: "Too many search requests",
-  },
+  windowMs: 10 * 1000, // 10 seconds
+  max: 20, // Limit each IP to 20 search requests
+  message: { message: "Too many search requests" },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 module.exports = { apiLimiter, searchLimiter };
