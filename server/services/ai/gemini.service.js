@@ -71,10 +71,10 @@ const detectWithGemini = async (file) => {
   return text;
 };
 
-const chatWithGemini = async (history, message) => {
+const chatWithGemini = async (history, message, userContext = "", socketId = null, io = null) => {
   const model = genAI.getGenerativeModel({ 
     model: "gemini-2.5-flash-lite",
-    systemInstruction: "You are a friendly expert nutritionist and AI assistant for the Dietary app. You answer questions about calories, diet, health, and fitness. Give short, concise, and highly effective answers (maximum 2-3 paragraphs). Be encouraging!"
+    systemInstruction: `You are a friendly expert nutritionist and AI assistant for the Dietary app. You answer questions about calories, diet, health, and fitness. Give short, concise, and highly effective answers (maximum 2-3 paragraphs). Be encouraging! ${userContext}`
   });
 
   try {
@@ -85,9 +85,25 @@ const chatWithGemini = async (history, message) => {
       })),
     });
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+    if (io && socketId) {
+      try {
+        const result = await chat.sendMessageStream(message);
+        for await (const chunk of result.stream) {
+          const chunkText = chunk.text();
+          io.to(socketId).emit("chat-stream", { text: chunkText, isDone: false });
+        }
+        io.to(socketId).emit("chat-stream", { text: "", isDone: true });
+        return "Stream completed";
+      } catch (streamErr) {
+        logger.error("Gemini Stream Error:", streamErr.message);
+        io.to(socketId).emit("chat-stream", { text: " Sorry, I am having trouble connecting.", isDone: true });
+        return "Stream error";
+      }
+    } else {
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+      return response.text();
+    }
   } catch (err) {
     logger.error("Gemini Chat Error:", err.message);
     throw { name: "InternalServerError", message: "AI is currently unavailable" };

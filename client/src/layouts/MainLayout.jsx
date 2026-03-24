@@ -79,7 +79,7 @@ const MainLayout = () => {
         </div>
       </nav>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-pattern">
+      <main className="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-pattern relative z-10">
         <Outlet />
       </main>
 

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router';
-import { getLogsToday } from '../../services/logService';
-import { getInsight, getWeeklyInsight } from '../../services/insightService';
-import { getGoal } from '../../services/goalService';
+import { fetchLogsToday } from '../../store/slices/logSlice';
+import { fetchInsight, fetchWeeklyInsight } from '../../store/slices/insightSlice';
+import { fetchUserGoal } from '../../store/slices/userSlice';
+import { exportWeeklyInsightPdf } from '../../services/insightService';
 import { formatCalories } from '../../utils/formatCalories';
 import Loader from '../../components/common/Loader';
 import TypewriterText from '../../components/common/TypewriterText';
@@ -13,30 +13,38 @@ import TypewriterText from '../../components/common/TypewriterText';
 const Dashboard = () => {
   const root = useRef(null);
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
-  const { data: todayData, isLoading: logsLoading } = useQuery({
-    queryKey: ['logs-today'],
-    queryFn: getLogsToday,
-    enabled: isAuthenticated,
-  });
+  const { todayData, loading: logsLoading } = useSelector((state) => state.log);
+  const { dailyInsight: insightData, weeklyInsights: weeklyData, weeklyMeta, loading: insightLoading, weeklyLoading } = useSelector((state) => state.insight);
+  const { userGoal: goalDataRes, goalLoading } = useSelector((state) => state.user);
 
-  const { data: insightData, isLoading: insightLoading } = useQuery({
-    queryKey: ['ai-insight'],
-    queryFn: getInsight,
-    enabled: isAuthenticated,
-  });
+  const handleExportPdf = async () => {
+    const toastId = toast.loading("Generating PDF Report...");
+    try {
+      const blob = await exportWeeklyInsightPdf();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Dietary_Weekly_Report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF Downloaded!", { id: toastId });
+    } catch (error) {
+      toast.error("Failed to generate PDF.", { id: toastId });
+    }
+  };
 
-  const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
-    queryKey: ['ai-weekly-insight'],
-    queryFn: getWeeklyInsight,
-    enabled: isAuthenticated,
-  });
-
-  const { data: goalDataRes, isLoading: goalLoading } = useQuery({
-    queryKey: ['user-goal'],
-    queryFn: getGoal,
-    enabled: isAuthenticated,
-  });
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchLogsToday());
+      dispatch(fetchInsight());
+      dispatch(fetchWeeklyInsight());
+      dispatch(fetchUserGoal());
+    }
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated && !logsLoading && !insightLoading && !weeklyLoading && root.current) {
@@ -74,7 +82,7 @@ const Dashboard = () => {
         });
       }
     }
-  }, [isAuthenticated, logsLoading, insightLoading, weeklyLoading, todayData]);
+  }, [isAuthenticated, logsLoading, insightLoading, weeklyLoading, goalLoading, todayData]);
 
   if (isAuthenticated && (logsLoading || insightLoading || goalLoading || weeklyLoading)) return <Loader />;
 
@@ -234,7 +242,30 @@ const Dashboard = () => {
       </div>
 
       <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Weekly AI Report</h2>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold text-gray-900">Weekly AI Report</h2>
+            {weeklyData && weeklyData.length > 0 && (
+              <button 
+                onClick={handleExportPdf}
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                PDF
+              </button>
+            )}
+          </div>
+          {weeklyMeta && (
+            <div className="text-right">
+              <span className="text-sm font-bold text-gray-500 uppercase">Total 7-Day Calories</span>
+              <p className="text-2xl font-black text-blue-600">
+                {formatCalories(weeklyMeta.totalWeeklyCalories)} 
+                <span className="text-base text-gray-400 font-medium"> / {formatCalories(weeklyMeta.totalWeeklyTarget)}</span>
+              </p>
+            </div>
+          )}
+        </div>
+        
         {weeklyInsights.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {weeklyInsights.map((wk) => (

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { sendChatMessage } from '../../services/insightService';
+import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
 
 const Chatbot = () => {
@@ -12,11 +13,36 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const socketRef = useRef(null);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace('/api', '');
+      socketRef.current = io(socketUrl);
+
+      socketRef.current.on('chat-stream', (data) => {
+        setMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg && lastMsg.role === 'model') {
+            return [...prev.slice(0, -1), { role: 'model', text: lastMsg.text + data.text }];
+          }
+          return prev;
+        });
+        if (data.isDone) {
+          setIsLoading(false);
+        }
+      });
+
+      return () => {
+        socketRef.current?.disconnect();
+      };
+    }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) return null;
 
@@ -28,21 +54,22 @@ const Chatbot = () => {
 
     const userMessage = input.trim();
     setInput('');
+    // Push user message AND empty model message
     const newHistory = [...messages, { role: 'user', text: userMessage }];
-    setMessages(newHistory);
+    setMessages([...newHistory, { role: 'model', text: '' }]);
     setIsLoading(true);
 
     try {
-      // Remove the last item (current user msg) to pass the previous history properly to Gemini history if needed, 
-      // but the API wrapper we made accepts the whole history before this message.
       const historyToPass = messages.length > 1 ? messages.slice(1) : []; 
-      const reply = await sendChatMessage(userMessage, historyToPass);
-      setMessages([...newHistory, { role: 'model', text: reply }]);
+      await sendChatMessage(userMessage, historyToPass, socketRef.current?.id);
+      // The rest is handled by 'chat-stream' socket event
     } catch (error) {
       toast.error('AI is struggling to answer right now.');
-      setMessages([...newHistory, { role: 'model', text: 'Sorry, I am having trouble connecting to the server. Please try again later.' }]);
-    } finally {
       setIsLoading(false);
+      setMessages((prev) => [
+        ...prev.slice(0, -1), 
+        { role: 'model', text: 'Sorry, I am having trouble connecting to the server. Please try again later.' }
+      ]);
     }
   };
 

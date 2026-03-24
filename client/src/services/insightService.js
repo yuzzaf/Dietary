@@ -7,10 +7,15 @@ export const getInsight = async () => {
 
 export const getWeeklyInsight = async () => {
   const response = await api.get('/ai/insight/weekly');
-  return response.data.data;
+  return response.data;
 };
 
-export const sendChatMessage = async (message, history) => {
-  const response = await api.post('/ai/chat', { message, history });
-  return response.data.data.reply;
+export const sendChatMessage = async (message, history, socketId) => {
+  const response = await api.post('/ai/chat', { message, history, socketId });
+  return response.data;
+};
+
+export const exportWeeklyInsightPdf = async () => {
+  const response = await api.get('/ai/insight/export', { responseType: 'blob' });
+  return response.data;
 };
