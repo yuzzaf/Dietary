@@ -47,7 +47,9 @@ jobs:
       
     - name: Run Jest Tests
       working-directory: ./server
-      run: npm test
+      run: |
+        npx sequelize-cli db:migrate
+        npm test
       env:
         NODE_ENV: test
         DATABASE_URL: postgres://postgres:password123@localhost:5432/dietary_test
