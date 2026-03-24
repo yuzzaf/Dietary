@@ -206,7 +206,6 @@ const AuthController = class AuthController {
 
       const user = await User.findOne({ where: { email } });
       if (!user) {
-        // Untuk security, biasanya kita tidak memberitahu apakah emailnya salah atau tidak
         return res.json({
           message: "If that email is registered, a reset link has been sent.",
         });
@@ -214,10 +213,10 @@ const AuthController = class AuthController {
 
       const token = crypto.randomBytes(32).toString("hex");
       user.resetPasswordToken = token;
-      user.resetPasswordExpires = Date.now() + 3600000;
+      user.resetPasswordExpires = new Date(Date.now() + 3600000);
       await user.save();
 
-      const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+      const resetUrl = `${process.env.CORS_ORIGIN || "http://localhost:5173"}/reset-password?token=${token}`;
 
       const transporter = nodemailer.createTransport({
         service: "gmail",

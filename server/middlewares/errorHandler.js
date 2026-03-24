@@ -18,7 +18,11 @@ const errorHandler = (err, req, res, next) => {
       return res.status(429).json({ message: err.message || "Too Many Requests" });
     default:
       console.error("GLOBAL ERROR HANDLER:", err);
-      return res.status(500).json({ message: "Internal Server Error", detail: err.message, stack: err.stack });
+      const isDev = process.env.NODE_ENV !== "production";
+      return res.status(500).json({ 
+        message: "Internal Server Error", 
+        ...(isDev && { detail: err.message, stack: err.stack }) 
+      });
   }
 };
 

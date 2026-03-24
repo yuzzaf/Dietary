@@ -93,7 +93,11 @@ const Detect = () => {
     logMutation.mutate({
       name: bestMatch.name,
       calories: bestMatch.calories,
-      food_id: bestMatch.id || 1,
+      protein: bestMatch.protein,
+      fat: bestMatch.fat,
+      carbs: bestMatch.carbs,
+      source: bestMatch.source,
+      externalId: bestMatch.externalId,
       quantity: Number(quantity) || 1,
     });
   };

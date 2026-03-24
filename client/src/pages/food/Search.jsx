@@ -63,9 +63,13 @@ const Search = () => {
 
   const handleLog = (food) => {
     logMutation.mutate({
-      food_id: food.id,
       name: food.name,
       calories: food.calories,
+      protein: food.protein,
+      fat: food.fat,
+      carbs: food.carbs,
+      source: food.source,
+      externalId: food.externalId,
     });
   };
 

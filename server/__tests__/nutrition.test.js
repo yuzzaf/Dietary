@@ -8,11 +8,11 @@ describe("Nutrition Service", () => {
 
     it("should calculate correctly for male using active multiplier", () => {
       // BMR = 10*70 + 6.25*175 - 5*25 + 5 = 1673.75
-      // TDEE = 1673.75 * 1.55 (active) = 2594.31
+      // TDEE = 1673.75 * 1.725 (active) = 2887.21875
       const tdee = calculateTDEE({ 
         weight: 70, height: 175, age: 25, gender: "male", activityLevel: "active" 
       });
-      expect(tdee).toBe(2594);
+      expect(tdee).toBe(2887);
     });
 
     it("should calculate correctly for female using default/sedentary multiplier", () => {
@@ -37,10 +37,10 @@ describe("Nutrition Service", () => {
   });
 
   describe("calculateUserTarget", () => {
-    const mockMaleUser = { weight: 70, height: 175, age: 25, gender: "male", activityLevel: "active" }; // TDEE: 2594
+    const mockMaleUser = { weight: 70, height: 175, age: 25, gender: "male", activityLevel: "active" }; // TDEE: 2887
     
     it("should return TDEE if no goal is set", () => {
-      expect(calculateUserTarget(mockMaleUser, null)).toBe(2594);
+      expect(calculateUserTarget(mockMaleUser, null)).toBe(2887);
     });
 
     it("should prioritize targetCalories from goal if it exists", () => {
@@ -48,15 +48,15 @@ describe("Nutrition Service", () => {
     });
 
     it("should reduce 300 calories if goalType is cutting", () => {
-      expect(calculateUserTarget(mockMaleUser, { goalType: "cutting" })).toBe(2294);
+      expect(calculateUserTarget(mockMaleUser, { goalType: "cutting" })).toBe(2587);
     });
 
     it("should add 300 calories if goalType is bulking", () => {
-      expect(calculateUserTarget(mockMaleUser, { goalType: "bulking" })).toBe(2894);
+      expect(calculateUserTarget(mockMaleUser, { goalType: "bulking" })).toBe(3187);
     });
 
     it("should return unchanged TDEE for other goal types", () => {
-      expect(calculateUserTarget(mockMaleUser, { goalType: "maintain" })).toBe(2594);
+      expect(calculateUserTarget(mockMaleUser, { goalType: "maintain" })).toBe(2887);
     });
   });
 });

@@ -43,7 +43,7 @@ class AIController {
       }
 
       const user = await User.findByPk(userId);
-      if (!user.weight || !user.height) {
+      if (!user.weight || !user.height || !user.age || !user.gender) {
         return res.json({
           status: "success",
           data: {

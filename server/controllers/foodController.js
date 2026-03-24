@@ -5,6 +5,9 @@ const logger = require("../helpers/logger");
 class FoodController {
   static async detectFood(req, res, next) {
     try {
+      if (!req.file) {
+        throw { name: "BadRequest", message: "Image is required" };
+      }
       const result = await detectFoodService(req.file);
       res.json({
         status: "success",
