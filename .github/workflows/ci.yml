@@ -1,0 +1,79 @@
+name: Dietary App CI
+
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+jobs:
+  test-server:
+    name: Test Express.js Server
+    runs-on: ubuntu-latest
+    
+    # Menjalankan Database PostgreSQL sementara khusus untuk testing
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password123
+          POSTGRES_DB: dietary_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: './server/package-lock.json'
+        
+    - name: Install server dependencies
+      working-directory: ./server
+      run: npm install
+      
+    - name: Run Jest Tests
+      working-directory: ./server
+      run: npm test
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgres://postgres:password123@localhost:5432/dietary_test
+        JWT_SECRET: dietarysecretkeytest
+        GEMINI_API_KEY: placeholder-ai-api-key
+
+  build-client:
+    name: Build React + Vite Client
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: './client/package-lock.json'
+        
+    - name: Install client dependencies
+      working-directory: ./client
+      run: npm install
+      
+    - name: Build to Production Bundle
+      working-directory: ./client
+      run: npm run build
+      env:
+        VITE_API_URL: https://api.dietary.example.com
