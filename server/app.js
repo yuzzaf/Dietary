@@ -9,6 +9,12 @@ const { apiLimiter } = require("./middlewares/rateLimiter");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Server is running!" });
+});
+
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || "*",
   credentials: true,
