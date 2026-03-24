@@ -17,8 +17,8 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password123
-          POSTGRES_DB: dietary_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: Dietary_test
         ports:
           - 5432:5432
         options: >-
