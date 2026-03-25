@@ -89,9 +89,7 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   User.beforeCreate(async (user) => {
-    if (user.password) {
-      user.password = await hashPassword(user.password);
-    }
+    user.password = await hashPassword(user.password);
   });
   return User;
 };

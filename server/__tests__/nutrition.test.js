@@ -23,6 +23,21 @@ describe("Nutrition Service", () => {
       });
       expect(tdee).toBe(1577);
     });
+
+    it("should default to sedentary if no activityLevel provided", () => {
+      const tdee = calculateTDEE({ 
+        weight: 60, height: 160, age: 25, gender: "female" 
+      });
+      expect(tdee).toBe(1577);
+    });
+
+    it("should default to 1.55 multiplier for unknown activityLevel", () => {
+      const tdee = calculateTDEE({ 
+        weight: 60, height: 160, age: 25, gender: "female", activityLevel: "unknown" 
+      });
+      // 1314 * 1.55 = 2036.7
+      expect(tdee).toBe(2037);
+    });
   });
 
   describe("calculateTotalCalories", () => {
@@ -30,9 +45,10 @@ describe("Nutrition Service", () => {
       const logs = [
         { Food: { calories: 150 }, quantity: 2 }, // 300
         { Food: { calories: 50 }, quantity: 1 },  // 50
-        { quantity: 1 }                           // missing Food, defaults to 0
+        { quantity: 1 },                          // missing Food, defaults to 0
+        { Food: { calories: 100 } }               // missing quantity, defaults to 1
       ];
-      expect(calculateTotalCalories(logs)).toBe(350);
+      expect(calculateTotalCalories(logs)).toBe(450);
     });
   });
 

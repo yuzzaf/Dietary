@@ -64,6 +64,35 @@ describe("Log Endpoints", () => {
 
       createdLogId = response.body.data.id;
     });
+
+    it("should create log with externalId and consumedAt", async () => {
+      const response = await request(app)
+        .post("/api/logs")
+        .set("Authorization", `Bearer ${access_token}`)
+        .send({
+          name: "Banana",
+          calories: 105,
+          source: "api",
+          externalId: "ext123",
+          consumedAt: new Date().toISOString()
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.mealType).toBe("snack"); // Default mealType
+    });
+
+    it("should handle error during log creation", async () => {
+      const { Food } = require("../models");
+      jest.spyOn(Food, "findOrCreate").mockRejectedValueOnce(new Error("DB Error"));
+      
+      const response = await request(app)
+        .post("/api/logs")
+        .set("Authorization", `Bearer ${access_token}`)
+        .send({ name: "Apple", calories: 95 });
+
+      expect(response.status).toBe(500);
+      jest.restoreAllMocks();
+    });
   });
 
   describe("GET /api/logs", () => {
@@ -83,6 +112,16 @@ describe("Log Endpoints", () => {
       expect(response.body.meta).toHaveProperty("total");
       expect(response.body.meta.total).toBeGreaterThan(0);
     });
+
+    it("should handle error in get all logs", async () => {
+      const { FoodLog } = require("../models");
+      jest.spyOn(FoodLog, "findAll").mockRejectedValueOnce(new Error("DB error"));
+      const response = await request(app)
+        .get("/api/logs")
+        .set("Authorization", `Bearer ${access_token}`);
+      expect(response.status).toBe(500);
+      jest.restoreAllMocks();
+    });
   });
 
   describe("GET /api/logs/today", () => {
@@ -101,8 +140,8 @@ describe("Log Endpoints", () => {
       expect(response.body.data).toHaveProperty("logs");
       expect(response.body.data).toHaveProperty("totalCalories");
       
-      // Calculate is 95 cals * 2 quantity = 190
-      expect(response.body.data.totalCalories).toBe(190);
+      // Calculate is (Apple 95 cals * 2) + (Banana 105 cals * 1) = 295
+      expect(response.body.data.totalCalories).toBe(295);
     });
   });
 
