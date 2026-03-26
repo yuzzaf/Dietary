@@ -19,22 +19,24 @@ describe("Food Service Validation", () => {
   });
 
   describe("searchFood", () => {
-    it("should return edamam result if available", async () => {
-      edamam.searchEdamam.mockResolvedValueOnce([{ name: "Apple", calories: 50 }]);
+    it("should return combined results if available from both source", async () => {
+      edamam.searchEdamam.mockResolvedValueOnce([{ name: "Apple", source: "edamam" }]);
+      fatsecret.searchFatSecret.mockResolvedValueOnce([{ name: "Apple FS", source: "fatsecret" }]);
+      
       const result = await searchFood("apple");
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(edamam.searchEdamam).toHaveBeenCalledWith("apple");
-      expect(fatsecret.searchFatSecret).not.toHaveBeenCalled();
+      expect(fatsecret.searchFatSecret).toHaveBeenCalledWith("apple");
     });
 
-    it("should fallback to fatsecret if edamam returns empty", async () => {
-      edamam.searchEdamam.mockResolvedValueOnce([]);
-      fatsecret.searchFatSecret.mockResolvedValueOnce([{ name: "Banana", calories: 90 }]);
+    it("should still return edamam result even if fatsecret returns empty", async () => {
+      edamam.searchEdamam.mockResolvedValueOnce([{ name: "Banana", source: "edamam" }]);
+      fatsecret.searchFatSecret.mockResolvedValueOnce([]);
       
       const result = await searchFood("banana");
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("Banana");
-      expect(fatsecret.searchFatSecret).toHaveBeenCalledWith("banana");
+      expect(fatsecret.searchFatSecret).toHaveBeenCalled();
     });
 
     it("should return empty array if both return empty", async () => {
@@ -45,9 +47,9 @@ describe("Food Service Validation", () => {
       expect(result).toEqual([]);
     });
 
-    it("should fallback to fatsecret if edamam throws an error", async () => {
+    it("should return data from one service even if the other throws an error", async () => {
       edamam.searchEdamam.mockRejectedValueOnce(new Error("API Error"));
-      fatsecret.searchFatSecret.mockResolvedValueOnce([{ name: "Orange", calories: 40 }]);
+      fatsecret.searchFatSecret.mockResolvedValueOnce([{ name: "Orange", source: "fatsecret" }]);
       
       const result = await searchFood("orange");
       expect(result).toHaveLength(1);
