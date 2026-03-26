@@ -64,11 +64,13 @@ const detectFoodService = async (file) => {
   }
   
   let detected = hfResult?.label ? normalizeLabel(hfResult.label) : null;
+  let aiSource = detected ? "huggingface" : null;
 
   if (!detected) {
     try {
       geminiResult = await detectWithGemini(file);
       detected = geminiResult ? normalizeLabel(geminiResult) : null;
+      if (detected) aiSource = "gemini";
     } catch {
       geminiResult = null;
     }
@@ -84,6 +86,7 @@ const detectFoodService = async (file) => {
     return {
       detected,
       options: [],
+      aiSource,
       message: "Food not found, try manual input",
     };
   }
@@ -91,6 +94,7 @@ const detectFoodService = async (file) => {
   return {
     detected,
     options: results,
+    aiSource
   };
 };
 
