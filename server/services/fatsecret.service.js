@@ -8,14 +8,13 @@ const getAccessToken = async () => {
       new URLSearchParams({
         grant_type: "client_credentials",
         scope: "premier",
+        client_id: process.env.FATSECRET_CLIENT_ID,
+        client_secret: process.env.FATSECRET_CLIENT_SECRET,
       }),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-        },
-        auth: {
-          username: process.env.FATSECRET_CLIENT_ID,
-          password: process.env.FATSECRET_CLIENT_SECRET,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         },
       },
     );
@@ -40,6 +39,7 @@ const searchFatSecret = async (query) => {
         },
         headers: {
           Authorization: `Bearer ${token}`,
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         },
       },
     );
