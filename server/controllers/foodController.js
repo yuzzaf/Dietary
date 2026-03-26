@@ -8,12 +8,12 @@ class FoodController {
       if (!req.file) {
         throw { name: "BadRequest", message: "Image is required" };
       }
-      const result = await detectFoodService(req.file);
+      const { aiSource, ...data } = await detectFoodService(req.file);
       res.json({
         status: "success",
-        data: result,
+        data,
         meta: {
-          ai: "gemini",
+          ai: aiSource,
           cached: false,
         },
       });
