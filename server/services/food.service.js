@@ -6,36 +6,38 @@ const { detectWithGemini } = require("./ai/gemini.service.js");
 
 const searchFood = async (query) => {
   try {
-    const edamamResult = await searchEdamam(query);
+    const [edamamResponse, fatsecretResponse] = await Promise.allSettled([
+      searchEdamam(query),
+      searchFatSecret(query),
+    ]);
 
-    if (edamamResult && edamamResult.length > 0) {
-      return edamamResult;
+    let combinedResults = [];
+
+    if (fatsecretResponse.status === "fulfilled" && Array.isArray(fatsecretResponse.value)) {
+      combinedResults = [...combinedResults, ...fatsecretResponse.value];
+    } else if (fatsecretResponse.status === "rejected") {
+      logger.error({
+        message: "FatSecret Service Error",
+        error: fatsecretResponse.reason?.message,
+      });
     }
 
-    const fatsecretResult = await searchFatSecret(query);
-
-    if (fatsecretResult && fatsecretResult.length > 0) {
-      return fatsecretResult;
+    if (edamamResponse.status === "fulfilled" && Array.isArray(edamamResponse.value)) {
+      combinedResults = [...combinedResults, ...edamamResponse.value];
+    } else if (edamamResponse.status === "rejected") {
+      logger.error({
+        message: "Edamam Service Error",
+        error: edamamResponse.reason?.message,
+      });
     }
 
-    return [];
+    return combinedResults;
   } catch (err) {
     logger.error({
-      message: "Food Service Error",
+      message: "Food Service Combined Error",
       error: err.message,
     });
-
-    try {
-      const fallback = await searchFatSecret(query);
-      return fallback || [];
-    } catch (fallbackErr) {
-      logger.error({
-        message: "Fallback FatSecret Error",
-        error: fallbackErr.message,
-      });
-
-      return [];
-    }
+    return [];
   }
 };
 

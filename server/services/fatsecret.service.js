@@ -44,22 +44,39 @@ const searchFatSecret = async (query) => {
       },
     );
 
-    const foods = response.data.foods?.food;
+    const foodsResponse = response.data.foods_search?.results?.food || response.data.foods?.food;
 
-    if (!foods) return [];
+    if (!foodsResponse) return [];
 
-    const list = Array.isArray(foods) ? foods : [foods];
+    const list = Array.isArray(foodsResponse) ? foodsResponse : [foodsResponse];
 
     //  NORMALISASI
-    return list.map((item) => ({
-      name: item.food_name,
-      calories: extractNutrient(item.food_description, "Calories"),
-      protein: extractNutrient(item.food_description, "Protein"),
-      fat: extractNutrient(item.food_description, "Fat"),
-      carbs: extractNutrient(item.food_description, "Carbs"),
-      source: "fatsecret",
-      externalId: item.food_id,
-    }));
+    return list.map((item) => {
+      let calories = 0, protein = 0, fat = 0, carbs = 0;
+
+      if (item.food_description) {
+        calories = extractNutrient(item.food_description, "Calories");
+        protein = extractNutrient(item.food_description, "Protein");
+        fat = extractNutrient(item.food_description, "Fat");
+        carbs = extractNutrient(item.food_description, "Carbs");
+      } else if (item.servings?.serving) {
+        const serving = Array.isArray(item.servings.serving) ? item.servings.serving[0] : item.servings.serving;
+        calories = parseFloat(serving.calories || 0);
+        protein = parseFloat(serving.protein || 0);
+        fat = parseFloat(serving.fat || 0);
+        carbs = parseFloat(serving.carbohydrate || 0);
+      }
+
+      return {
+        name: item.food_name,
+        calories,
+        protein,
+        fat,
+        carbs,
+        source: "fatsecret",
+        externalId: item.food_id,
+      };
+    });
   } catch (err) {
     logger.error("FatSecret Search Error:", err.message);
     throw err;
