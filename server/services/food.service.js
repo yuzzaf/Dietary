@@ -16,19 +16,15 @@ const searchFood = async (query) => {
     if (fatsecretResponse.status === "fulfilled" && Array.isArray(fatsecretResponse.value)) {
       combinedResults = [...combinedResults, ...fatsecretResponse.value];
     } else if (fatsecretResponse.status === "rejected") {
-      logger.error({
-        message: "FatSecret Service Error",
-        error: fatsecretResponse.reason?.message,
-      });
+      const fsErr = fatsecretResponse.reason?.response?.data || fatsecretResponse.reason?.message;
+      logger.error({ message: "FatSecret Service Error", error: fsErr });
     }
 
     if (edamamResponse.status === "fulfilled" && Array.isArray(edamamResponse.value)) {
       combinedResults = [...combinedResults, ...edamamResponse.value];
     } else if (edamamResponse.status === "rejected") {
-      logger.error({
-        message: "Edamam Service Error",
-        error: edamamResponse.reason?.message,
-      });
+      const edaErr = edamamResponse.reason?.response?.data || edamamResponse.reason?.message;
+      logger.error({ message: "Edamam Service Error", error: edaErr });
     }
 
     return combinedResults;
