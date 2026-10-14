@@ -1,0 +1,109 @@
+# ---------------------------------------------------------------------------
+# Dietary - full stack for Oracle Cloud (Ampere/AMD VM) via docker compose.
+#
+#   1. cp .env.docker.example .env      # then fill in the secrets
+#   2. docker compose up -d --build
+#
+# Only the client container publishes a port (80/443 through the reverse proxy
+# or directly). Postgres and the API stay on the internal network.
+# ---------------------------------------------------------------------------
+name: dietary
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dietary-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-Dietary}
+      # Keeps passwords/emails out of the container logs
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-Dietary}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks: [dietary]
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: dietary-api:latest
+    container_name: dietary-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # Points at the internal service name; never exposed to the host.
+      # For a TLS-enabled managed database, append ?sslmode=require here -
+      # node-postgres reads it from the URL, no other change needed.
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-Dietary}
+      # Tokens/cookies are only same-origin through nginx, but the browser does
+      # send Origin, so the real public URL must be listed here (comma separated)
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      # --- application secrets (passed through from the root .env) ---------
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      EDAMAM_APP_ID: ${EDAMAM_APP_ID:-}
+      EDAMAM_APP_KEY: ${EDAMAM_APP_KEY:-}
+      FATSECRET_CLIENT_ID: ${FATSECRET_CLIENT_ID:-}
+      FATSECRET_CLIENT_SECRET: ${FATSECRET_CLIENT_SECRET:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+    expose:
+      - "3000"
+    volumes:
+      # Docker-layer fix, no app code touched: server/config/config.json forces
+      # dialectOptions.ssl.require = true under NODE_ENV=production, but a stock
+      # postgres container serves no TLS, so node-postgres aborts with
+      # "The server does not support SSL connections". This read-only mount
+      # overrides the container's copy with the same config minus that block.
+      # Removing it re-breaks the API -> database connection.
+      - ./server/config/config.docker.json:/app/config/config.json:ro
+    networks: [dietary]
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        # Relative URL: the browser calls the nginx origin, nginx proxies to
+        # the API container. No CORS, no hardcoded IP.
+        VITE_API_URL: ${VITE_API_URL:-/api}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_GITHUB_CLIENT_ID: ${VITE_GITHUB_CLIENT_ID:-}
+    image: dietary-client:latest
+    container_name: dietary-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      # Oracle VM Security List + ufw must allow whichever port you choose
+      - "${CLIENT_PORT:-80}:80"
+    networks: [dietary]
+
+volumes:
+  db_data:
+    name: dietary_db_data
+
+networks:
+  dietary:
+    name: dietary_net
+    driver: bridge

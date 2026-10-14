@@ -1,0 +1,9 @@
+# Compose passes per-service container hostnames, no localhost, and the build
+# context already excludes .env files - these catch the rest.
+.env
+.env.local
+.env.*.local
+*.log
+node_modules
+.git
+.gitignore

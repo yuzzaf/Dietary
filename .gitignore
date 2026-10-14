@@ -1,0 +1,21 @@
+# ---- OS / editor noise ----------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ---- Compose secrets & runtime state --------------------------------------
+.env
+.env.local
+.env.*.local
+!.env.docker.example
+!.env_example
+!.env-example
+
+# ---- Logs & local data ----------------------------------------------------
+*.log
+npm-debug.log*
+logs/
+data/
+pgdata/
