@@ -1,0 +1,21 @@
+# Docker, nginx and shell tooling are line-ending sensitive and these files ship
+# to a Linux VM. With core.autocrlf=true (default on Windows) a fresh clone
+# would otherwise rewrite them as CRLF in the working tree, and that CRLF copy
+# is what Docker sends in the build context.
+#
+# Deliberately scoped to the deployment files instead of a blanket
+# "* text=auto": a global rule would renormalize every existing (CRLF)
+# application file and produce a huge, unrelated diff.
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.conf text eol=lf
+*.sh text eol=lf
+.dockerignore text eol=lf
+.env* text eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

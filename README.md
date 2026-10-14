@@ -192,6 +192,8 @@ CORS_ORIGIN=http://<your-oracle-public-ip>   # or https://yourdomain.com
 Everything else (Gemini, FatSecret, Cloudinary, OAuth, SMTP) can stay empty — the API boots and the database still migrates; only the features using those keys will fail.
 
 > **Why `VITE_API_URL=/api`?** The browser talks to nginx on the same origin, and nginx proxies to the API container. No hardcoded IP, no CORS preflight, and Socket.io works through the same port. Vite bakes this in at **build time**, so changing it requires `docker compose up -d --build`.
+>
+> This also required a one-line fix in `client/src/components/common/Chatbot.jsx`: it built the Socket.io URL with `apiUrl.replace("/api", "")`, which turns a relative `/api` into `""`, and `io("")` produces the invalid URI `http://`. It now passes `undefined` when the result is empty, so socket.io-client falls back to `window.location` — verified against `socket.io-client` 4.x. Absolute URLs (the old `http://localhost:3000`) behave exactly as before.
 
 ### 2. Build & start
 

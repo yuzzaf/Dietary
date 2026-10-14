@@ -42,9 +42,13 @@ const Chatbot = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const socketUrl = (
-        import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-      ).replace("/api", "");
+      // Derives the Socket.io origin from the REST base URL.
+      // A relative base like "/api" means "same origin as the page", so after
+      // stripping the suffix the result is "" - and io("") builds the invalid
+      // URI "http://". Passing undefined instead makes socket.io-client fall
+      // back to window.location, which is what a same-origin deployment wants.
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+      const socketUrl = apiUrl.replace(/\/api\/?$/, "") || undefined;
       socketRef.current = io(socketUrl);
 
       socketRef.current.on("chat-stream", (data) => {
