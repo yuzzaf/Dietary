@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /logs
+Disallow: /profile
+
+Sitemap: https://app.muhammadyuzzaf.com/sitemap.xml

@@ -89,9 +89,9 @@ const Dashboard = () => {
   // Landing view for unauthenticated users
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-16 animate-fade-in">
-        {/* Hero Section */}
-        <section className="max-w-3xl space-y-6">
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center space-y-24 animate-fade-in max-w-6xl mx-auto">
+        {/* 1. Hero Section */}
+        <section className="max-w-3xl space-y-6 pt-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
             AI-Powered Nutrition Intelligence
@@ -128,48 +128,264 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* Bento Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl text-left">
-          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
-            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              </svg>
+        {/* 2. Interactive Product Mockup / App Preview */}
+        <section className="w-full max-w-5xl">
+          <div className="relative rounded-2xl border border-zinc-200/80 bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] overflow-hidden text-left">
+            {/* Window Topbar */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50/70">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-rose-400/80" />
+                <span className="w-3 h-3 rounded-full bg-amber-400/80" />
+                <span className="w-3 h-3 rounded-full bg-emerald-400/80" />
+                <span className="ml-2 text-[11px] font-mono text-zinc-400">dietary.app / live-food-detection</span>
+              </div>
+              <span className="text-[11px] font-medium text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+                Gemini 2.5 Vision
+              </span>
             </div>
-            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Instant Vision Scanner</h3>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              Snap a photo of your food plate. Google Gemini computer vision classifies and calculates caloric estimates instantly.
+
+            {/* Mockup Body: Split Image + Analysis */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
+              {/* Left Photo Showcase */}
+              <div className="md:col-span-7 relative bg-zinc-900 overflow-hidden group">
+                <img
+                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=80"
+                  alt="Healthy Salmon Salad Meal Bowl"
+                  className="w-full h-72 sm:h-96 md:h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
+                
+                {/* Floating Scanner Box */}
+                <div className="absolute top-6 left-6 right-6 bottom-6 border-2 border-dashed border-blue-400/60 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
+                  <div className="self-start bg-zinc-900/80 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-white/10 flex items-center gap-1.5 shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    Target Detected: Mediterranean Bowl
+                  </div>
+                  <div className="self-end bg-blue-600/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
+                    99.4% Match
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Analysis Breakdown */}
+              <div className="md:col-span-5 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Classified Meal</span>
+                    <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Balanced</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-zinc-900">Grilled Salmon Quinoa Bowl</h3>
+                  <p className="text-xs text-zinc-500 mt-1">Rich in healthy omega-3 fatty acids, complex carbs, and lean protein.</p>
+                </div>
+
+                {/* Macro Badges */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-100">
+                    <span className="text-[11px] font-medium text-zinc-400 block">Total Calories</span>
+                    <span className="text-xl font-extrabold text-zinc-900 tabular-nums">540 <span className="text-xs font-normal text-zinc-500">kcal</span></span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-100">
+                    <span className="text-[11px] font-medium text-blue-600 block">Protein</span>
+                    <span className="text-xl font-extrabold text-blue-900 tabular-nums">42 <span className="text-xs font-normal text-blue-600">g</span></span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-100">
+                    <span className="text-[11px] font-medium text-amber-600 block">Carbs</span>
+                    <span className="text-xl font-extrabold text-amber-900 tabular-nums">34 <span className="text-xs font-normal text-amber-600">g</span></span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-rose-50/50 border border-rose-100">
+                    <span className="text-[11px] font-medium text-rose-600 block">Healthy Fats</span>
+                    <span className="text-xl font-extrabold text-rose-900 tabular-nums">18 <span className="text-xs font-normal text-rose-600">g</span></span>
+                  </div>
+                </div>
+
+                {/* AI Assistant Remark */}
+                <div className="p-3.5 rounded-xl bg-zinc-900 text-white text-xs leading-relaxed flex items-start gap-3 shadow-sm">
+                  <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                  </div>
+                  <p className="text-[11px] text-zinc-300">
+                    <strong className="text-white font-semibold">AI Coach:</strong> Excellent choice. You have reached 68% of your protein goal for today.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. How It Works - 3 Step Flow */}
+        <section className="w-full max-w-5xl space-y-12">
+          <div className="space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600">Workflow</h2>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
+              Three simple steps to nutritional clarity
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-500 max-w-xl mx-auto">
+              No more tedious manual barcode typing or vague meal guesswork.
             </p>
           </div>
 
-          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
-            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            {/* Step 1 */}
+            <div className="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between space-y-4">
+              <span className="text-4xl font-black text-zinc-100 absolute top-4 right-4 select-none">01</span>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-zinc-900 mb-1">Snap or Search Meal</h4>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Take a photo of your plate or search through over 100,000 verified foods in our database.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-semibold text-blue-600 flex items-center gap-1">
+                Zero manual math <span aria-hidden="true">→</span>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Verified Nutrition Library</h3>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              Access comprehensive, verified macronutrient data for over 100,000+ natural and commercial foods via FatSecret & Edamam.
-            </p>
+
+            {/* Step 2 */}
+            <div className="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between space-y-4">
+              <span className="text-4xl font-black text-zinc-100 absolute top-4 right-4 select-none">02</span>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-zinc-900 mb-1">Instant AI Breakdown</h4>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Google Gemini scans ingredients, portion weights, and retrieves clinical caloric data in under a second.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                Clinically verified <span aria-hidden="true">→</span>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-sm relative overflow-hidden flex flex-col justify-between space-y-4">
+              <span className="text-4xl font-black text-zinc-100 absolute top-4 right-4 select-none">03</span>
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-zinc-900 mb-1">Weekly Reports & Coach</h4>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Monitor your daily deficit, chat with your nutrition coach, and download one-click PDF summaries for your doctor.
+                </p>
+              </div>
+              <div className="pt-2 text-[11px] font-semibold text-indigo-600 flex items-center gap-1">
+                Export to PDF <span aria-hidden="true">→</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Trust & Precision Metrics */}
+        <section className="w-full max-w-5xl py-8 px-6 bg-white rounded-2xl border border-zinc-200/80 shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tabular-nums">100k+</span>
+              <p className="text-xs text-zinc-500 font-medium">Verified Foods</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 tabular-nums">&lt; 1.2s</span>
+              <p className="text-xs text-zinc-500 font-medium">Gemini Detection Time</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 tabular-nums">100%</span>
+              <p className="text-xs text-zinc-500 font-medium">Free To Use</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tabular-nums">PDF</span>
+              <p className="text-xs text-zinc-500 font-medium">Weekly Health Reports</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Bento Features Grid */}
+        <section className="w-full max-w-5xl space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-400">Capabilities</h2>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">Built for serious wellness</h3>
           </div>
 
-          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
-            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-5">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
+            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-zinc-900 mb-1.5">Instant Vision Scanner</h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Snap a photo of your food plate. Google Gemini computer vision classifies and calculates caloric estimates instantly.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Personalized AI Coach</h3>
-            <p className="text-xs text-zinc-500 leading-relaxed">
-              Receive smart daily coaching on deficits, macro balances, and tailored meal suggestions to keep your fitness on track.
-            </p>
-          </div>
-        </div>
 
-        {/* Trusted Attribution */}
-        <div className="pt-8 border-t border-zinc-200/60 w-full max-w-4xl flex flex-col items-center justify-center space-y-4">
-          <p className="text-[11px] font-bold text-zinc-400 tracking-widest uppercase">Verified Data Partners</p>
+            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-zinc-900 mb-1.5">Verified Nutrition Library</h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Access comprehensive, verified macronutrient data for over 100,000+ natural and commercial foods via FatSecret & Edamam.
+              </p>
+            </div>
+
+            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-zinc-900 mb-1.5">Personalized AI Coach</h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Receive smart daily coaching on deficits, macro balances, and tailored meal suggestions to keep your fitness on track.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Ready to Transform CTA Section */}
+        <section className="w-full max-w-4xl bg-gradient-to-b from-zinc-900 to-zinc-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 max-w-xl mx-auto space-y-5">
+            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Ready to take control of your diet?
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+              Join thousands of users who simplified their meal logging with computer vision. No subscription fees required.
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Link
+                to="/register"
+                className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all active:scale-[0.98]"
+              >
+                Create Free Account
+              </Link>
+              <Link
+                to="/login"
+                className="w-full sm:w-auto px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700 transition-all active:scale-[0.98]"
+              >
+                Sign In to Existing Account
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Trusted Attribution & Footer */}
+        <footer className="pt-8 border-t border-zinc-200/60 w-full max-w-4xl flex flex-col items-center justify-center space-y-4">
+          <p className="text-[11px] font-bold text-zinc-400 tracking-widest uppercase">Verified Clinical Data Partners</p>
           <div className="flex flex-wrap items-center justify-center gap-8 opacity-75 hover:opacity-100 transition-opacity duration-200">
             <a href="https://platform.fatsecret.com" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
               <img 
@@ -186,7 +402,8 @@ const Dashboard = () => {
               />
             </a>
           </div>
-        </div>
+          <p className="text-[11px] text-zinc-400 pt-2">© {new Date().getFullYear()} Dietary. Precision Nutrition Intelligence.</p>
+        </footer>
       </div>
     );
   }
