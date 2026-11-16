@@ -16,7 +16,6 @@ const CalorieOverview = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {/* Calorie Target Card */}
       <div className="stat-card opacity-0 bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-center mb-4">
@@ -43,7 +42,6 @@ const CalorieOverview = ({
             </span>
           </div>
 
-          {/* Dynamic Status Pill */}
           <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold">
             {isOverTarget ? (
               <span className="text-rose-600 flex items-center gap-1">
@@ -69,7 +67,6 @@ const CalorieOverview = ({
             )}
           </div>
 
-          {/* Progress Bar */}
           <div className="w-full bg-zinc-100 h-2.5 rounded-full mt-4 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ease-out ${
@@ -93,7 +90,6 @@ const CalorieOverview = ({
         </div>
       </div>
 
-      {/* AI Insight Card */}
       <div className="stat-card opacity-0 bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
         <div>
           <div className="flex items-center gap-2 mb-3">

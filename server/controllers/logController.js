@@ -1,10 +1,9 @@
 const { Food, FoodLog, AIInsight } = require("../models");
 const { Op } = require("sequelize");
 const logger = require("../helpers/logger");
-const { z, date } = require("zod");
+const { z } = require("zod");
 
 class LogController {
-  // CREATE
   static async createLog(req, res, next) {
     try {
       const userId = req.user.id;
@@ -22,7 +21,6 @@ class LogController {
         mealType,
       } = req.body;
 
-      // find or create food
       const whereClause = externalId
         ? { externalId, source }
         : { name: name.toLowerCase() };
@@ -48,11 +46,12 @@ class LogController {
           .min(1)
           .parse(quantity || 1),
         consumedAt: consumedAt ? z.coerce.date().parse(consumedAt) : new Date(),
-        mealType: mealType || "snack",
+        mealType,
       });
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
       await AIInsight.destroy({
         where: {
           userId,
@@ -64,7 +63,10 @@ class LogController {
 
       res.status(201).json({
         status: "success",
-        data: log,
+        data: {
+          ...log.toJSON(),
+          Food: food,
+        },
         meta: null,
       });
     } catch (err) {
@@ -73,7 +75,6 @@ class LogController {
     }
   }
 
-  // GET ALL
   static async getLogs(req, res, next) {
     try {
       const userId = req.user.id;
@@ -97,7 +98,6 @@ class LogController {
     }
   }
 
-  // GET TODAY
   static async getLogsToday(req, res, next) {
     try {
       const userId = req.user.id;
@@ -137,7 +137,6 @@ class LogController {
     }
   }
 
-  // DELETE
   static async deleteLog(req, res, next) {
     try {
       const userId = req.user.id;

@@ -4,7 +4,6 @@ const cloudinary = require("../helpers/cloudinary.js");
 const streamifier = require("streamifier");
 
 class UserController {
-  // GET PROFILE
   static async getProfile(req, res, next) {
     try {
       const userId = req.user.id;
@@ -24,7 +23,6 @@ class UserController {
     }
   }
 
-  // UPDATE PROFILE
   static async updateProfile(req, res, next) {
     try {
       const userId = req.user.id;
@@ -54,6 +52,7 @@ class UserController {
       logger.error(err);
     }
   }
+
   static async updateProfilePicture(req, res, next) {
     try {
       const userId = req.user.id;
@@ -62,7 +61,6 @@ class UserController {
         throw { name: "BadRequest", message: "Image is required" };
       }
 
-      // upload pakai promise
       const uploadFromBuffer = () =>
         new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(

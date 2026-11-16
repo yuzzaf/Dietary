@@ -16,9 +16,7 @@ export const LanguageProvider = ({ children }) => {
       const next = prev === 'en' ? 'id' : 'en';
       try {
         localStorage.setItem('dietary_lang', next);
-      } catch {
-        // ignore
-      }
+      } catch {}
       return next;
     });
   };
@@ -26,9 +24,7 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     try {
       localStorage.setItem('dietary_lang', lang);
-    } catch {
-      // ignore
-    }
+    } catch {}
   }, [lang]);
 
   return (

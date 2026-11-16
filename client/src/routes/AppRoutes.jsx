@@ -5,7 +5,6 @@ import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
 import Loader from '../components/common/Loader';
 
-// Lazy-loaded pages for optimal bundle split and instant initial load
 const Login = lazy(() => import('../pages/auth/Login'));
 const Register = lazy(() => import('../pages/auth/Register'));
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'));

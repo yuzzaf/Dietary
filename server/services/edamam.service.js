@@ -18,7 +18,6 @@ const searchEdamam = async (query) => {
 
     if (!hints || hints.length === 0) return [];
 
-    // normalize data
     return hints.map((item) => {
       const food = item.food;
 

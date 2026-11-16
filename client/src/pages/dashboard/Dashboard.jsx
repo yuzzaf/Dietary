@@ -12,13 +12,11 @@ import { exportWeeklyInsightPdf } from "../../services/insightService";
 import { useLanguage } from "../../context/LanguageContext";
 import Loader from "../../components/common/Loader";
 
-// Modular Dashboard Sub-components
 import CalorieOverview from "../../components/dashboard/CalorieOverview";
 import MacroAndWater from "../../components/dashboard/MacroAndWater";
 import TodayMeals from "../../components/dashboard/TodayMeals";
 import WeeklySummary from "../../components/dashboard/WeeklySummary";
 
-// Lazy-load Landing Page for unauthenticated visitors (improves bundle & load speed)
 const LandingView = lazy(() => import("../../components/dashboard/LandingView"));
 
 const Dashboard = () => {
@@ -38,7 +36,6 @@ const Dashboard = () => {
   } = useSelector((state) => state.insight);
   const { userGoal, goalLoading } = useSelector((state) => state.user);
 
-  // Water Hydration State
   const todayDateStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const waterKey = `dietary_water_${todayDateStr}`;
 
@@ -56,9 +53,7 @@ const Dashboard = () => {
       const next = Math.max(0, Math.min(16, prev + delta));
       try {
         localStorage.setItem(waterKey, next.toString());
-      } catch {
-        // ignore storage errors
-      }
+      } catch {}
       if (next === 8 && prev < 8) {
         toast.success(
           isEn
@@ -157,16 +152,13 @@ const Dashboard = () => {
     todayData,
   ]);
 
-  // Loading state for authenticated members
   if (
     isAuthenticated &&
     (logsLoading || insightLoading || goalLoading || weeklyLoading)
-  )
+  ) {
     return <Loader />;
+  }
 
-  // -------------------------------------------------------------
-  // LANDING VIEW (UNAUTHENTICATED) - Lazy Loaded
-  // -------------------------------------------------------------
   if (!isAuthenticated) {
     return (
       <Suspense fallback={<Loader />}>
@@ -175,9 +167,6 @@ const Dashboard = () => {
     );
   }
 
-  // -------------------------------------------------------------
-  // AUTHENTICATED DASHBOARD (MEMBER VIEW)
-  // -------------------------------------------------------------
   const logs = todayData?.logs || [];
   const totalCalories = todayData?.totalCalories || 0;
   const targetCalories = userGoal?.targetCalories || 2000;
@@ -188,7 +177,6 @@ const Dashboard = () => {
   const insight = insightData?.insight;
   const weeklyInsights = weeklyData || [];
 
-  // Macro Totals Calculated from Today's Meals
   const totalProtein = Math.round(
     logs.reduce(
       (acc, log) =>
@@ -216,7 +204,6 @@ const Dashboard = () => {
 
   return (
     <div ref={root} className="space-y-6 pb-12 animate-fade-in">
-      {/* 1. Header with Date and Quick Action Pills */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
@@ -232,7 +219,6 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Quick Action Shortcuts */}
         <div className="flex items-center gap-2 flex-wrap">
           <Link
             to="/detect"
@@ -302,7 +288,6 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* 2. Top Metric Cards (Calories & AI Coach) */}
       <CalorieOverview
         totalCalories={totalCalories}
         targetCalories={targetCalories}
@@ -313,7 +298,6 @@ const Dashboard = () => {
         insight={insight}
       />
 
-      {/* 3. Daily Macronutrients Breakdown & Hydration Tracker */}
       <MacroAndWater
         totalProtein={totalProtein}
         totalCarbs={totalCarbs}
@@ -322,10 +306,8 @@ const Dashboard = () => {
         onWaterChange={handleWaterChange}
       />
 
-      {/* 4. Recent Activity Section (Today's Meals) */}
       <TodayMeals logs={logs} />
 
-      {/* 5. Weekly AI Summary Card */}
       <WeeklySummary
         weeklyInsights={weeklyInsights}
         weeklyMeta={weeklyMeta}

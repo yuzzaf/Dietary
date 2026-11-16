@@ -2,7 +2,6 @@ import api from './api';
 
 export const searchFood = async (query) => {
   const response = await api.get(`/foods/search?q=${query}`);
-  // Mapping to return just the array of food options
   return response.data.data?.options || [];
 };
 

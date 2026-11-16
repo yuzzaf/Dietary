@@ -8,7 +8,6 @@ const nodemailer = require("nodemailer");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const AuthController = class AuthController {
-  // REGISTER
   static async register(req, res, next) {
     try {
       const { email, password, firstName, lastName } = req.body;
@@ -33,7 +32,6 @@ const AuthController = class AuthController {
     }
   }
 
-  // LOGIN
   static async login(req, res, next) {
     try {
       const { email, password } = req.body;
@@ -62,7 +60,6 @@ const AuthController = class AuthController {
     }
   }
 
-  // GOOGLE LOGIN
   static async googleLogin(req, res, next) {
     try {
       const { id_token } = req.body;
@@ -108,13 +105,11 @@ const AuthController = class AuthController {
     }
   }
 
-  // GITHUB LOGIN
   static async githubLogin(req, res, next) {
     try {
       const { code } = req.body;
       if (!code) throw { name: "BadRequest", message: "GitHub code required" };
 
-      // 1. Exchange code for access token
       const tokenResponse = await fetch(
         "https://github.com/login/oauth/access_token",
         {
@@ -131,6 +126,7 @@ const AuthController = class AuthController {
         },
       );
       const tokenData = await tokenResponse.json();
+
       if (tokenData.error)
         throw {
           name: "Unauthorized",
@@ -138,7 +134,6 @@ const AuthController = class AuthController {
         };
       const accessToken = tokenData.access_token;
 
-      // 2. Fetch user profile
       const userResponse = await fetch("https://api.github.com/user", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -151,7 +146,6 @@ const AuthController = class AuthController {
         };
       }
 
-      // 3. Fetch primary email (since profile email can be null if private)
       const emailsResponse = await fetch("https://api.github.com/user/emails", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -198,7 +192,6 @@ const AuthController = class AuthController {
     }
   }
 
-  // FORGOT PASSWORD
   static async forgotPassword(req, res, next) {
     try {
       const { email } = req.body;
@@ -252,7 +245,6 @@ const AuthController = class AuthController {
     }
   }
 
-  // RESET PASSWORD
   static async resetPassword(req, res, next) {
     try {
       const { token, newPassword } = req.body;

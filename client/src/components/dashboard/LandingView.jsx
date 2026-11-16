@@ -101,7 +101,6 @@ const LandingView = () => {
   const [activeSampleMeal, setActiveSampleMeal] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
 
-  // TDEE Calculator States
   const [calcGender, setCalcGender] = useState("male");
   const [calcAge, setCalcAge] = useState(25);
   const [calcWeight, setCalcWeight] = useState(70);

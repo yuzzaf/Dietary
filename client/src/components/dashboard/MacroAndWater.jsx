@@ -12,7 +12,6 @@ const MacroAndWater = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-      {/* Macros Breakdown (8 cols) */}
       <div className="stat-card opacity-0 md:col-span-8 bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-sm font-bold text-zinc-900 tracking-tight">
@@ -24,7 +23,6 @@ const MacroAndWater = ({
         </div>
 
         <div className="grid grid-cols-3 gap-3.5">
-          {/* Protein */}
           <div className="p-4 rounded-xl bg-blue-50/40 border border-blue-100/80">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">
@@ -43,7 +41,6 @@ const MacroAndWater = ({
             </p>
           </div>
 
-          {/* Carbohydrates */}
           <div className="p-4 rounded-xl bg-amber-50/40 border border-amber-100/80">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">
@@ -62,7 +59,6 @@ const MacroAndWater = ({
             </p>
           </div>
 
-          {/* Fat */}
           <div className="p-4 rounded-xl bg-rose-50/40 border border-rose-100/80">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">
@@ -83,7 +79,6 @@ const MacroAndWater = ({
         </div>
       </div>
 
-      {/* Quick Water / Hydration Tracker (4 cols) */}
       <div className="stat-card opacity-0 md:col-span-4 bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-center mb-2">
@@ -102,7 +97,6 @@ const MacroAndWater = ({
             {isEn ? "Daily goal: 2,000 ml" : "Target harian 2.000 ml"}
           </p>
 
-          {/* Glasses Visual Bar */}
           <div className="grid grid-cols-8 gap-1.5 mb-3">
             {[...Array(8)].map((_, i) => (
               <div

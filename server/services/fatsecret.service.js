@@ -50,7 +50,6 @@ const searchFatSecret = async (query) => {
 
     const list = Array.isArray(foodsResponse) ? foodsResponse : [foodsResponse];
 
-    //  NORMALISASI
     return list.map((item) => {
       let calories = 0, protein = 0, fat = 0, carbs = 0;
 
