@@ -118,7 +118,7 @@ describe("External API Services Mock Testing", () => {
     });
 
     it("should throw error if Gemini API request fails", async () => {
-      mockGenerateContent.mockRejectedValueOnce(new Error("Gemini Server Down"));
+      mockGenerateContent.mockRejectedValue(new Error("Gemini Server Down"));
 
       await expect(
         generateInsight({
