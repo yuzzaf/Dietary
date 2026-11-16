@@ -268,9 +268,17 @@ class AIController {
 
   static async handleChat(req, res, next) {
     try {
-      const { message, history, socketId } = req.body;
-      if (!message)
+      let { message, history, socketId } = req.body;
+
+      if (Array.isArray(message) && typeof history === "string") {
+        const temp = message;
+        message = history;
+        history = temp;
+      }
+
+      if (!message || typeof message !== "string" || !message.trim()) {
         throw { name: "BadRequest", message: "Message is required" };
+      }
 
       const userId = req.user.id;
       const today = new Date();

@@ -108,8 +108,8 @@ const Chatbot = () => {
       );
 
       const response = await sendChatMessage(
-        outgoingHistory,
         userMessage,
+        outgoingHistory,
         socketId,
       );
 

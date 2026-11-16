@@ -1,6 +1,12 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const logger = require("../../helpers/logger");
 
+const GEMINI_MODELS = [
+  "gemini-2.5-flash-lite",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
+];
+
 const getGenAI = () => new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const sanitizeHistory = (rawHistory) => {
@@ -54,117 +60,143 @@ Instructions:
 - Avoid robotic tone
 `;
 
-  try {
-    const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
-  } catch (err) {
-    logger.error("Gemini Error:", err.message);
-    throw err;
+  const genAI = getGenAI();
+  let lastError = null;
+
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (err) {
+      lastError = err;
+      logger.error(`Gemini Insight Error with ${modelName}: ${err.message}`);
+    }
   }
+
+  throw lastError;
 };
 
 const detectWithGemini = async (file) => {
   const genAI = getGenAI();
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
-  });
-
   const base64Image = file.buffer.toString("base64");
+  let lastError = null;
 
-  const result = await model.generateContent({
-    contents: [
-      {
-        parts: [
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent({
+        contents: [
           {
-            text: "Return only the food name in English. No explanation.",
-          },
-          {
-            inlineData: {
-              mimeType: file.mimetype,
-              data: base64Image,
-            },
+            parts: [
+              {
+                text: "Return only the food name in English. No explanation.",
+              },
+              {
+                inlineData: {
+                  mimeType: file.mimetype,
+                  data: base64Image,
+                },
+              },
+            ],
           },
         ],
-      },
-    ],
-  });
+      });
 
-  let text = result.response.text();
+      let text = result.response.text();
+      return text.toLowerCase().replace(".", "").split("\n")[0].trim();
+    } catch (err) {
+      lastError = err;
+      logger.error(`Gemini Detect Error with ${modelName}: ${err.message}`);
+    }
+  }
 
-  text = text.toLowerCase().replace(".", "").split("\n")[0].trim();
-
-  return text;
+  throw lastError;
 };
 
 const chatWithGemini = async (history, message, userContext = "", socketId = null, io = null) => {
+  if (Array.isArray(message) && typeof history === "string") {
+    const temp = message;
+    message = history;
+    history = temp;
+  }
+
+  const promptText = typeof message === "string" ? message.trim() : "";
+  if (!promptText) {
+    throw new Error("No content is provided for sending chat message.");
+  }
+
   const genAI = getGenAI();
   const systemInstruction = `You are a friendly expert nutritionist and AI assistant for the Dietary app. You answer questions about calories, diet, health, and fitness. Give short, concise, and highly effective answers (maximum 2-3 paragraphs). Be encouraging! ${userContext}`;
-  
-  const model = genAI.getGenerativeModel({ 
-    model: "gemini-2.5-flash-lite",
-    systemInstruction,
-  });
+  const validHistory = sanitizeHistory(history);
 
-  try {
-    const validHistory = sanitizeHistory(history);
-    const chat = model.startChat({ history: validHistory });
-
-    if (io && socketId) {
-      try {
-        const result = await chat.sendMessageStream(message);
-        let streamedAny = false;
-        for await (const chunk of result.stream) {
-          let chunkText = "";
-          try {
-            chunkText = chunk.text();
-          } catch {
-            chunkText = chunk.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          }
-          if (chunkText) {
-            streamedAny = true;
-            io.to(socketId).emit("chat-stream", { text: chunkText, isDone: false });
-          }
-        }
-        io.to(socketId).emit("chat-stream", { text: "", isDone: true });
-        return "Stream completed";
-      } catch (streamErr) {
-        logger.error(`Gemini Stream Error: ${streamErr.stack || streamErr.message || streamErr}`);
-
-        try {
-          const fallbackRes = await chat.sendMessage(message);
-          const fallbackText = fallbackRes.response?.text?.() || "";
-          if (fallbackText) {
-            io.to(socketId).emit("chat-stream", { text: fallbackText, isDone: true });
-            return "Fallback completed";
-          }
-        } catch (fallbackErr) {
-          logger.error(`Gemini Fallback Error: ${fallbackErr.stack || fallbackErr.message || fallbackErr}`);
-        }
-
-        io.to(socketId).emit("chat-stream", { 
-          text: " Maaf, asisten AI sedang mengalami gangguan koneksi. Silakan kirim pesan Anda kembali.", 
-          isDone: true 
-        });
-        return "Stream error";
-      }
-    } else {
-      const result = await chat.sendMessage(message);
-      const response = await result.response;
-      return response.text();
-    }
-  } catch (err) {
-    logger.error(`Gemini Chat Error: ${err.stack || err.message || err}`);
-    if (io && socketId) {
-      io.to(socketId).emit("chat-stream", { 
-        text: " Maaf, asisten AI sedang tidak tersedia saat ini. Silakan coba lagi.", 
-        isDone: true 
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ 
+        model: modelName,
+        systemInstruction,
       });
+
+      const chat = model.startChat({ history: validHistory });
+
+      if (io && socketId) {
+        try {
+          const result = await chat.sendMessageStream(promptText);
+          let streamedAny = false;
+          for await (const chunk of result.stream) {
+            let chunkText = "";
+            try {
+              chunkText = chunk.text();
+            } catch {
+              chunkText = chunk.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            }
+            if (chunkText) {
+              streamedAny = true;
+              io.to(socketId).emit("chat-stream", { text: chunkText, isDone: false });
+            }
+          }
+          io.to(socketId).emit("chat-stream", { text: "", isDone: true });
+          return "Stream completed";
+        } catch (streamErr) {
+          logger.error(`Gemini Stream Error with ${modelName}: ${streamErr.message}`);
+
+          try {
+            const fallbackRes = await chat.sendMessage(promptText);
+            const fallbackText = fallbackRes.response?.text?.() || "";
+            if (fallbackText) {
+              io.to(socketId).emit("chat-stream", { text: fallbackText, isDone: true });
+              return "Fallback completed";
+            }
+          } catch (fallbackErr) {
+            logger.error(`Gemini Fallback Error with ${modelName}: ${fallbackErr.message}`);
+          }
+
+          continue;
+        }
+      } else {
+        const result = await chat.sendMessage(promptText);
+        const response = await result.response;
+        return response.text();
+      }
+    } catch (modelErr) {
+      logger.error(`Gemini Model Error with ${modelName}: ${modelErr.message}`);
     }
-    throw { name: "InternalServerError", message: "AI is currently unavailable" };
   }
+
+  if (io && socketId) {
+    io.to(socketId).emit("chat-stream", { 
+      text: " Maaf, semua model AI sedang mengalami gangguan atau kehabisan kuota saat ini. Silakan coba kembali beberapa saat lagi.", 
+      isDone: true 
+    });
+  }
+  throw { name: "InternalServerError", message: "AI is currently unavailable" };
 };
 
-module.exports = { generateInsight, detectWithGemini, chatWithGemini, sanitizeHistory };
+module.exports = { 
+  GEMINI_MODELS, 
+  generateInsight, 
+  detectWithGemini, 
+  chatWithGemini, 
+  sanitizeHistory 
+};
