@@ -1,12 +1,14 @@
 import { Outlet, Link, useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
+import { useLanguage } from "../context/LanguageContext";
 
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const { lang, toggleLanguage } = useLanguage();
 
   const handleLogout = () => {
     dispatch(logout());
@@ -99,8 +101,19 @@ const MainLayout = () => {
               </div>
             </div>
 
-            {/* Desktop Auth Button */}
-            <div className="flex items-center gap-3">
+            {/* Desktop Auth & Language Controls */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                title="Switch Language (English / Indonesia)"
+                className="text-[11px] font-semibold text-zinc-600 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200/80 px-2.5 py-1.5 rounded-lg border border-zinc-200/70 transition-all flex items-center gap-1 cursor-pointer select-none active:scale-95"
+              >
+                <span className={lang === 'en' ? 'text-blue-600 font-bold' : 'text-zinc-400'}>EN</span>
+                <span className="text-zinc-300">/</span>
+                <span className={lang === 'id' ? 'text-blue-600 font-bold' : 'text-zinc-400'}>ID</span>
+              </button>
+
               {isAuthenticated ? (
                 <button
                   onClick={handleLogout}

@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { LanguageProvider } from './context/LanguageContext';
 import AppRoutes from './routes/AppRoutes';
 import InteractiveGrid from './components/common/InteractiveGrid';
 import Chatbot from './components/common/Chatbot';
@@ -17,12 +18,14 @@ function App() {
     <Provider store={store}>
       <GoogleOAuthProvider clientId={googleClientId}>
         <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <InteractiveGrid />
-            <Chatbot />
-            <Toaster position="top-center" />
-            <AppRoutes />
-          </BrowserRouter>
+          <LanguageProvider>
+            <BrowserRouter>
+              <InteractiveGrid />
+              <Chatbot />
+              <Toaster position="top-center" />
+              <AppRoutes />
+            </BrowserRouter>
+          </LanguageProvider>
         </QueryClientProvider>
       </GoogleOAuthProvider>
     </Provider>
