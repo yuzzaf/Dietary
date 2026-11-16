@@ -48,7 +48,10 @@ const Chatbot = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+      const rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+      const apiUrl = (rawApiUrl.startsWith("http://") || rawApiUrl.startsWith("https://"))
+        ? rawApiUrl
+        : `https://${rawApiUrl}`;
       const socketUrl = apiUrl.replace(/\/api\/?$/, "") || undefined;
       socketRef.current = io(socketUrl);
 

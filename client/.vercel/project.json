@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_Zi1G37xLsgJcaJxqHazGVAH2ULSd",
+  "orgId": "team_nn2iwkoMujKJsFHYqaqJoJpp",
+  "projectName": "dietary",
+  "settings": {
+    "createdAt": 1774357516131,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": "client",
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
