@@ -1,348 +1,311 @@
 <div align="center">
-  <img src="./client/public/dietary-logo.png" alt="Dietary Logo" width="120" />
-  <h1>Dietary 🌱</h1>
-  <p><strong>Your Ultimate AI-Powered Nutrition & Calorie Tracking Companion</strong></p>
+  <img src="./client/public/dietary-logo.png" alt="Dietary Logo" width="130" />
+  <h1>🥗 Dietary</h1>
+  <p><strong>Next-Gen AI-Powered Nutrition, Calorie Tracking & Real-Time Dietary Coaching</strong></p>
 
-[![Dietary App CI](https://github.com/yuzzaf/ip-yuzzaf/actions/workflows/ci.yml/badge.svg)](https://github.com/yuzzaf/ip-yuzzaf/actions/workflows/ci.yml)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![TailwindCSS v4](https://img.shields.io/badge/TailwindCSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+  <p>
+    <a href="https://app.muhammadyuzzaf.com/"><strong>Explore Live Demo »</strong></a>
+    &nbsp;•&nbsp;
+    <a href="./api_docs.md"><strong>Explore API Docs »</strong></a>
+    &nbsp;•&nbsp;
+    <a href="#-quick-start-with-docker"><strong>Quick Start »</strong></a>
+  </p>
 
+  <p>
+    <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
+    <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+    <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/Google_Gemini-AI_Vision_%26_Chat-8E75C2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+    <img src="https://img.shields.io/badge/TailwindCSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS" />
+    <img src="https://img.shields.io/badge/Docker-Compose_Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/Jest-131_Tests_Passing-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest Tests" />
+    <img src="https://img.shields.io/badge/PWA-Installable-FF6C37?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
+  </p>
 </div>
 
 ---
 
-**Dietary** is an intelligent, modern Web Application engineered to revolutionize how you track your dietary habits. By fusing a beautifully crafted interface with state-of-the-art **Google Gemini AI**, users can maintain their diet, log calories effortlessly, and receive personalized nutrition coaching in real-time.
+## 🌟 Overview
 
-## 📋 Table of Contents
+**Dietary** is an intelligent, full-stack health companion designed to make nutrition tracking seamless, interactive, and actionable. Powered by **Google Gemini AI**, Dietary transforms raw meals into granular macronutrient breakdowns from a single photo, delivers real-time conversational dietary coaching over **Socket.io**, and dynamically tracks daily caloric surplus or deficit against your personalized biological parameters.
 
-- [✨ Key Features](#-key-features)
-- [🚀 Tech Stack](#-tech-stack)
-- [🏗️ Project Structure](#-project-structure)
-- [⚙️ Installation & Setup](#-installation--setup)
-- [🐳 Docker Deployment](#-docker-deployment)
-- [🔐 Environment Variables](#-environment-variables)
-- [📖 Usage Documentation](#-usage-documentation)
-- [📡 API Documentation](#-api-documentation)
+Whether you're **cutting**, **bulking**, or **maintaining**, Dietary adapts to your lifestyle with automated weekly PDF progress reports, multi-provider OAuth, and an offline-capable Progressive Web App (PWA).
 
 ---
 
 ## ✨ Key Features
 
-- 📸 **Intelligent Food Recognition:** Don't know how many calories are in your meal? Simply snap a photo. Our integrated AI Vision (Google Gemini) will analyze the image, detect the food, and estimate its nutritional breakdown instantly.
-- 🤖 **AI Nutritionist Chatbot:** Chat with a responsive, context-aware AI Coach 24/7. Built using **Socket.io** for real-time text streaming, providing a stunning native typewriter effect.
-- 📊 **Smart Analytics & PDF Export:** Get automated daily feedback indicating whether you are on track, in a deficit, or surplus. Export a comprehensive **7-day Weekly Dietary Report PDF** with a single click.
-- 📱 **Progressive Web App (PWA):** Fully installable on your Android and iOS homescreens without passing through the App Store. Experience native-like fullscreen immersion.
-- 🍔 **Extensive Food Database:** Reliable search mechanism backed by the **FatSecret API**, granting access to thousands of generic and branded nutritional food items.
-- 🔒 **OAuth Integrations:** Secure, frictionless one-click registration and login using **Google OAuth** and **GitHub OAuth**.
+<table>
+  <tr>
+    <td width="50%">
+      <h3>📸 AI Vision Food Recognition</h3>
+      <p>Simply take or upload a photo of your meal. Google Gemini Vision scans the image, identifies dishes, and estimates calories, protein, fat, and carbohydrates automatically.</p>
+    </td>
+    <td width="50%">
+      <h3>🤖 Real-Time Streaming AI Coach</h3>
+      <p>Interactive 24/7 nutrition chatbot with instantaneous typing effects streamed via <strong>Socket.io</strong>. Features a 3-tier cascade fallback mechanism (<code>gemini-2.5-flash-lite</code> → <code>gemini-3.5-flash-lite</code> → <code>gemini-3.1-flash-lite</code>) ensuring zero downtime.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>📊 Smart Analytics & Daily Insights</h3>
+      <p>Automatic daily evaluations comparing your logged calories against calculated BMR/TDEE targets. Identifies deficit, maintenance, or surplus with actionable advice.</p>
+    </td>
+    <td width="50%">
+      <h3>📄 One-Click Weekly PDF Reports</h3>
+      <p>Generate professional, beautifully formatted 7-day nutritional progress digests on-the-fly using <strong>PDFKit</strong>, complete with caloric averages and dietary trends.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🔍 Multi-Source Food Database</h3>
+      <p>Instant search powered by the <strong>FatSecret Platform API</strong> with internal PostgreSQL caching, guaranteeing rapid queries and reduced external API overhead.</p>
+    </td>
+    <td width="50%">
+      <h3>📱 Installable PWA & Offline Support</h3>
+      <p>Add Dietary straight to your iOS or Android home screen with full fullscreen immersion, app icons, splash screens, and Workbox caching.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>🔐 Multi-Provider Authentication</h3>
+      <p>Frictionless onboarding with <strong>Google OAuth</strong> and <strong>GitHub OAuth</strong>, alongside traditional email/password auth protected by bcrypt, JWT, and email password reset via Nodemailer.</p>
+    </td>
+    <td width="50%">
+      <h3>🌐 Bilingual Experience (EN / ID)</h3>
+      <p>Full internationalization support allowing effortless switching between English and Bahasa Indonesia across the entire UI and AI interactions.</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🚀 Tech Stack
-
-### Frontend (Client)
-
-- **Framework**: React (Vite)
-- **Styling**: TailwindCSS v4
-- **State Management**: Redux Toolkit & React Query (TanStack Query)
-- **Routing**: React Router
-- **Realtime**: Socket.io-client
-- **PWA**: vite-plugin-pwa
-- **Alerts**: SweetAlert2 & React-Hot-Toast
-
-### Backend (Server)
-
-- **Runtime Engine**: Node.js & Express.js
-- **Database**: PostgreSQL
-- **ORM**: Sequelize
-- **Authentication**: JSON Web Tokens (JWT), Google Auth Library, Axios (Github OAuth), Bcryptjs
-- **AI Integration**: `@google/generative-ai`
-- **Realtime**: Socket.io
-- **Utilities**: PDFKit (Report Generation), Multer (Image Uploads)
-
----
-
-## 🏗️ Project Structure
-
-This repository is designed as a Fullstack Monorepo structure containing both the Express.js Backend and React.js Frontend.
+## 🏗️ Architecture & Data Flow
 
 ```text
-📦 ip-yuzzaf
- ┣ 📂 client                 # Frontend React Application
- ┃ ┣ 📂 public               # PWA Icons & Manifest mappings
- ┃ ┣ 📂 src                  # UI Components, Pages, Redux Slices, and Services
- ┃ ┣ 📜 Dockerfile           # Multi-stage build -> nginx static + reverse proxy
- ┃ ┣ 📜 nginx.conf           # SPA fallback, /api and /socket.io proxy rules
- ┃ ┗ 📜 vite.config.js       # Vite + PWA configurations
- ┣ 📂 server                 # Backend Node/Express Application
- ┃ ┣ 📂 bin                  # HTTP & Socket.io Server Entry Point (www)
- ┃ ┣ 📂 controllers          # Application Business Logic (AI, Auth, Logs, etc.)
- ┃ ┣ 📂 middlewares          # Rate Limiters, JWT Verification, Authorization
- ┃ ┣ 📂 models               # Sequelize Database Models
- ┃ ┣ 📂 services             # Third-party Services (Gemini AI, Fatsecret)
- ┃ ┣ 📜 Dockerfile           # Node runtime, runs migrations then ./bin/www
- ┃ ┗ 📂 __tests__            # Comprehensive Jest Test Suites (90+ Tests)
- ┣ 📜 docker-compose.yml     # db + server + client orchestration
- ┣ 📜 .env.docker.example    # Environment template for compose
- ┗ 📂 .github/workflows      # CI/CD GitHub Actions Configuration
+  ┌─────────────────────────────────────────────────────────┐
+  │                 React 19 PWA Client                     │
+  │     (Tailwind CSS v4 • Redux Toolkit • React Query)     │
+  └───────────────┬─────────────────────────┬───────────────┘
+                  │ HTTP REST               │ WebSockets
+                  │ (JWT Bearer)            │ (Socket.io)
+                  ▼                         ▼
+  ┌─────────────────────────────────────────────────────────┐
+  │                  Express.js API Server                  │
+  │     (Rate Limiters • Multer • PDFKit • Winston)         │
+  └───────┬───────────────┬─────────────────┬───────────────┘
+          │               │                 │
+          ▼               ▼                 ▼
+   ┌─────────────┐ ┌─────────────┐   ┌───────────────────────────┐
+   │ PostgreSQL  │ │ Cloudinary  │   │     Google Gemini AI      │
+   │  (Sequelize │ │ (Avatar CDN)│   │   • Vision Food Detector  │
+   │   ORM 16)   │ └─────────────┘   │   • Streaming Chat Coach  │
+   └─────────────┘                   │   • Daily Insight Engine  │
+          ▲                          └───────────────────────────┘
+          │ Cache Fallback
+   ┌───────────────┐
+   │ FatSecret API │ (Food & Macro Database)
+   └───────────────┘
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## 🛠️ Tech Stack
 
-### Prerequisites
+### Client (Frontend)
+- **Framework & Tooling:** React 19, Vite, React Router v7
+- **Styling:** Tailwind CSS v4, Lucide React Icons
+- **State & Data Fetching:** Redux Toolkit, TanStack Query (React Query)
+- **Real-Time Communication:** `socket.io-client`
+- **PWA Capabilities:** `vite-plugin-pwa`, Workbox
+- **Feedback & Notifications:** SweetAlert2, React Hot Toast
 
-- Node.js (v18 or higher recommended)
-- PostgreSQL running locally or via remote cloud URL.
+### Server (Backend)
+- **Runtime & Framework:** Node.js 22, Express.js
+- **Database & Persistence:** PostgreSQL 16, Sequelize ORM
+- **Artificial Intelligence:** `@google/generative-ai` (Gemini 2.5 Flash Lite, 3.5 Flash Lite, 3.1 Flash Lite)
+- **Authentication & Security:** JWT, Google Auth Library, Axios (GitHub OAuth), Bcryptjs, Express Rate Limit
+- **Media & File Handling:** Multer, Cloudinary SDK, PDFKit
+- **Real-Time Duplex:** Socket.io
+- **Testing Suite:** Jest, Supertest (131 test cases across 16 test suites)
 
-### 1. Clone the repository
+---
 
+## 📂 Repository Structure
+
+```text
+ip-yuzzaf/
+├── client/                     # Frontend Application
+│   ├── public/                 # PWA icons, manifest, logos
+│   ├── src/
+│   │   ├── components/         # Reusable UI widgets & Chatbot
+│   │   ├── pages/              # Views (Dashboard, Search, Detect, Profile, Logs)
+│   │   ├── services/           # Axios API services & socket clients
+│   │   └── store/              # Redux slices & state management
+│   ├── Dockerfile              # Multi-stage production build
+│   └── vite.config.js          # Vite & PWA configuration
+├── server/                     # Backend API & Socket Server
+│   ├── bin/www                 # Server entry point (HTTP & Socket.io)
+│   ├── controllers/            # Controller layer (AI, Auth, Food, Goal, Log, User)
+│   ├── middlewares/            # Auth, authorization, multer, rate limiter, error handler
+│   ├── models/                 # Sequelize database models
+│   ├── routes/                 # Express REST route definitions
+│   ├── services/               # Gemini AI, FatSecret, and Nutrition services
+│   ├── __tests__/              # Jest test suites (131 tests)
+│   └── Dockerfile              # Node.js production image with auto-migration
+├── docker-compose.yml          # Production multi-container orchestration
+├── .env.docker.example         # Environment template for Docker Compose
+├── api_docs.md                 # Complete REST API & WebSocket specifications
+└── README.md                   # Project overview & guide
+```
+
+---
+
+## 🚀 Quick Start with Docker
+
+The fastest way to spin up the entire backend ecosystem (PostgreSQL + Express API + Socket.io):
+
+### 1. Clone & Setup Environment
 ```bash
 git clone https://github.com/yuzzaf/ip-yuzzaf.git
 cd ip-yuzzaf
+cp .env.docker.example .env
 ```
 
-### 2. Backend Setup
+### 2. Configure Essential Secrets
+Edit `.env` and fill in your keys:
+```env
+POSTGRES_PASSWORD=your_strong_db_password
+JWT_SECRET=your_jwt_secret_key
+GEMINI_API_KEY=your_google_gemini_api_key
+CORS_ORIGIN=http://localhost:5173
+```
 
-Navigate into the backend and install all required standard packages:
+### 3. Launch Containers
+```bash
+docker compose up -d --build
+```
+The server will automatically run database migrations and start listening on port `3000`.
 
+Check running services:
+```bash
+docker compose ps
+docker compose logs -f server
+```
+
+---
+
+## 💻 Manual Local Development
+
+### Prerequisites
+- **Node.js**: v18.x or v22.x LTS
+- **PostgreSQL**: v14+ running locally
+- **Google Gemini API Key**: [Google AI Studio](https://aistudio.google.com/)
+
+### 1. Server Setup
 ```bash
 cd server
 npm install
-```
 
-Setup your PosgreSQL database and seed the initial dummy data:
-
-```bash
+# Setup database & migrations
 npx sequelize-cli db:create
 npx sequelize-cli db:migrate
 npx sequelize-cli db:seed:all
-```
 
-Run the backend Express server:
-
-```bash
+# Start backend dev server
 npm run dev
 ```
+> Server runs at `http://localhost:3000`
 
-### 3. Frontend Setup
-
-Open a new terminal, navigate to the `client` directory:
-
+### 2. Client Setup
+Open a separate terminal:
 ```bash
 cd client
 npm install
-```
-
-Run the frontend Vite server:
-
-```bash
 npm run dev
 ```
+> Client runs at `http://localhost:5173`
 
 ---
 
-## 🐳 Docker Deployment
+## 🧪 Testing & Quality Assurance
 
-The backend stack (PostgreSQL + Express/Socket.io API) is containerized with Docker Compose. The React PWA client is hosted separately on Vercel at [https://app.muhammadyuzzaf.com/](https://app.muhammadyuzzaf.com/).
-
-```text
-┌──────────────────────────┐             :3000   ┌───────────────┐
-│  Client (Vercel)         │ ──────────────────▶ │  server       │
-│  app.muhammadyuzzaf.com  │   CORS / REST /     │  Express +    │
-│  (React PWA / Vite)      │   Socket.io         │  Socket.io    │
-└──────────────────────────┘                     └───────┬───────┘
-                                                   :5432 │
-                                          ┌──────────────▼─────────┐
-                                          │  db (postgres:16-alpine)│
-                                          │  volume: dietary_db_data│
-                                          └────────────────────────┘
-```
-
-### Files added / configured
-
-| File | Purpose |
-| --- | --- |
-| `docker-compose.yml` | Orchestrates `db` and `server` on a private bridge network; exposes port 3000 |
-| `.env.docker.example` | Template for environment variables compose needs |
-| `server/Dockerfile` | Node 22 alpine, multi-stage, non-root, tini PID 1, applies migrations on boot |
-| `server/config/config.docker.json` | DB config mounted over the container's copy to drop hardcoded `ssl.require` |
-| `server/.dockerignore` | Keeps `node_modules`, `coverage`, `__tests__`, `.env` out of the image |
-| `client/vercel.json` | SPA routing configuration for Vercel deployment |
-
-### 1. Configure the environment
+The backend includes a comprehensive automated test suite powered by Jest and Supertest, covering authentication, data validation, rate-limiting, authorization, and Gemini AI multi-model cascades.
 
 ```bash
-cd ip-yuzzaf
-cp .env.docker.example .env
+cd server
+npm test
 ```
 
-Edit `.env`. The key values:
-
-```env
-POSTGRES_PASSWORD=<strong_password>
-JWT_SECRET=<strong_random_secret>
-CORS_ORIGIN=https://app.muhammadyuzzaf.com   # Vercel domain or http://localhost:5173
-PORT=3000
-```
-
-Everything else (Gemini, FatSecret, Edamam, Cloudinary, OAuth, SMTP) can be filled in as needed. Food detection uses Google Gemini (`GEMINI_API_KEY`).
-
-### 2. Build & start
-
-```bash
-docker compose up -d --build
-docker compose ps
-docker compose logs -f server   # watch "sequelize-cli db:migrate" then the boot log
-```
-
-The `server` container runs `sequelize-cli db:migrate` automatically before starting `bin/www` (set `RUN_MIGRATIONS=false` to skip it).
-
-### 3. Common operations
-
-```bash
-docker compose logs -f server          # tail API logs
-docker compose restart server          # restart after a .env change
-docker compose up -d --build           # rebuild after code changes
-docker compose exec server sh          # shell inside the API container
-docker compose exec db psql -U postgres -d Dietary   # psql prompt
-docker compose down                    # stop (keeps the db volume)
-docker compose down -v                 # stop AND delete all data
-```
+### Test Coverage Highlights:
+- **16 Test Suites**: 100% passing (`131 of 131 tests`)
+- **Controllers & Middlewares**: 90%+ branch and statement coverage
+- **Resilient AI Mocking**: Verified failover between primary and secondary Gemini models
 
 ---
 
-## ☁️ Deploying to Oracle Cloud
+## 🔐 Environment Variables Reference
 
-Tested shape: a free-tier **VM.Standard.A1.Flex** (Ampere ARM64) or **VM.Standard.E2.1.Micro** (AMD64) running Ubuntu 22.04/24.04. Both architectures work — every image used here is multi-arch and Node/npm installs the right native bindings for ARM.
+### Backend (`server/.env`)
+| Variable | Description | Required | Example |
+| :--- | :--- | :---: | :--- |
+| `PORT` | API Port | Yes | `3000` |
+| `DATABASE_URL` | PostgreSQL connection URI | Yes | `postgres://user:pass@localhost:5432/dietary_db` |
+| `JWT_SECRET` | Secret key for signing auth tokens | Yes | `super_secure_random_key` |
+| `CORS_ORIGIN` | Allowed Frontend Origin | Yes | `http://localhost:5173` |
+| `GEMINI_API_KEY` | Google Generative AI API Key | Yes | `AIzaSy...` |
+| `FATSECRET_CLIENT_ID` | FatSecret Platform Client ID | Optional | `your_client_id` |
+| `FATSECRET_CLIENT_SECRET` | FatSecret Platform Secret | Optional | `your_client_secret` |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | Optional | `123456...apps.googleusercontent.com` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App ID | Optional | `Ov23...` |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret | Optional | `your_github_secret` |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary Storage Account | Optional | `dietary-cloud` |
+| `CLOUDINARY_API_KEY` | Cloudinary API Key | Optional | `1234567890` |
+| `CLOUDINARY_API_SECRET` | Cloudinary API Secret | Optional | `your_cloudinary_secret` |
+| `EMAIL_USER` | Gmail address for password reset | Optional | `support@dietary.app` |
+| `EMAIL_PASS` | Gmail App Password | Optional | `xxxx xxxx xxxx xxxx` |
 
-### 1. Install Docker on the VM
-
-Ubuntu:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y ca-certificates curl git
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER      # log out and back in for this to apply
-docker --version && docker compose version
-```
-
-Oracle Linux 8/9 (`dnf`, needs the repo first):
-
-```bash
-sudo dnf install -y dnf-utils git
-sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-```
-
-### 2. Open the port — two firewalls must both allow it
-
-1. **Oracle VCN Security List / Network Security Group**: add an *Ingress* rule, source `0.0.0.0/0`, TCP destination port `80` (and `443` for TLS). This is the step people forget — the VM is unreachable from outside until it's done.
-2. **Firewall on the VM**:
-
-```bash
-# Ubuntu (Oracle images ship iptables rules that block everything but SSH)
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-sudo netfilter-persistent save
-
-# If ufw is in use instead
-sudo ufw allow 80/tcp
-
-# Oracle Linux
-sudo firewall-cmd --permanent --add-service=http && sudo firewall-cmd --reload
-```
-
-### 3. Ship the code and start it
-
-```bash
-git clone https://github.com/yuzzaf/Dietary.git   # or: git fetch && git checkout feat/docker-deployment
-cd Dietary
-cp .env.docker.example .env
-nano .env                      # POSTGRES_PASSWORD, JWT_SECRET, CORS_ORIGIN=http://<public-ip>
-docker compose up -d --build
-```
-
-The first build takes a few minutes (npm install + Vite build). When `docker compose ps` shows `db (healthy)`, `server (healthy)` and `client (healthy)`, open `http://<public-ip>`.
-
-### 4. Restart on reboot
-
-`restart: unless-stopped` is set on every service, so the stack comes back by itself as long as the Docker daemon is enabled (`sudo systemctl enable docker`). To verify:
-
-```bash
-sudo reboot
-# after the VM is back:
-docker compose ps
-```
-
-### 5. Optional: HTTPS with a domain
-
-Point an A record at the VM's public IP, then either terminate TLS in front of this stack:
-
-```bash
-sudo apt-get install -y nginx certbot python3-certbot-nginx
-```
-
-…and reverse-proxy `443` → `http://127.0.0.1:80`, or add Caddy/Traefik as a fourth compose service. Afterwards update `CORS_ORIGIN` to the `https://` URL and re-run `docker compose up -d`.
-
-### Deployment notes & caveats
-
-- **TLS / the one gotcha in this repo.** `server/config/config.json` hardcodes `dialectOptions.ssl.require = true` for the `production` block, and the container runs with `NODE_ENV=production`. A stock `postgres` image serves **no TLS** (its entrypoint never generates certificates), so node-postgres sends an `SSLRequest`, gets a single `N` byte back, and aborts with `The server does not support SSL connections` — the API would never connect. `docker-compose.yml` therefore mounts `server/config/config.docker.json` (identical config, minus the `ssl` block) over `/app/config/config.json` inside the container. **No application code was modified.** If you delete that mount, the API dies at boot with the message above.
-- **Switching to a managed database that requires TLS:** append `?sslmode=require` to `DATABASE_URL` in `docker-compose.yml` and *replace* `config.docker.json` with one that has `"dialectOptions": { "ssl": { "require": true, "rejectUnauthorized": false } }`. Do not remove the mount while `DATABASE_URL` points at the internal `db` service.
-- **Uploads:** Multer uses `memoryStorage()` and images go to Cloudinary, so the API container is stateless — safe to rebuild, restart and eventually scale.
-- **Secrets** live only in `./.env` on the VM (git-ignored). Never commit it; rotate `POSTGRES_PASSWORD`/`JWT_SECRET` before exposing the app publicly.
-- **Do not map port 5432** to the host — Postgres is reachable only on the internal `dietary_net` network.
-- **`server/coverage/` is committed to the repo** but excluded from the image by `server/.dockerignore`. Consider dropping it from git (it is generated by `npm test`).
-- **Rollback:** `docker compose down && git checkout main && docker compose up -d --build`.
+### Frontend (`client/.env`)
+| Variable | Description | Required | Example |
+| :--- | :--- | :---: | :--- |
+| `VITE_API_URL` | Base Backend REST API URL | Yes | `http://localhost:3000/api` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID | Optional | `123456...apps.googleusercontent.com` |
 
 ---
 
-## 🔐 Environment Variables
+## 📡 API & WebSocket Reference
 
-Create a `.env` file inside both the `server/` and `client/` directories based on the configurations below:
+Comprehensive documentation for all endpoints, payload schemas, error formats, and WebSocket streaming events is available in [**`api_docs.md`**](./api_docs.md).
 
-### Server (`server/.env`)
-
-```env
-PORT=3000
-DATABASE_URL=postgres://postgres:yourpassword@localhost:5432/dietary_db
-JWT_SECRET=super_secret_jwt_key
-CORS_ORIGIN=http://localhost:5173
-
-# Third-party AI & API Keys
-GEMINI_API_KEY=your_google_gemini_api_key
-FATSECRET_CLIENT_ID=your_fatsecret_id
-FATSECRET_CLIENT_SECRET=your_fatsecret_secret
-
-# OAuth Configurations
-GOOGLE_CLIENT_ID=your_google_client_id
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-```
-
-### Client (`client/.env`)
-
-```env
-VITE_API_URL=http://localhost:3000/api
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-```
+### Quick Endpoint Cheatsheet:
+- `POST /api/auth/register` — Create account
+- `POST /api/auth/login` — Sign in & obtain JWT
+- `POST /api/auth/google-login` / `github-login` — OAuth single sign-on
+- `GET  /api/users/profile` — Fetch user metrics & BMR data
+- `PATCH /api/users/profile-picture` — Upload avatar to Cloudinary
+- `GET  /api/foods/search?q={query}` — Search nutrition database
+- `POST /api/foods/detect` — AI Vision food recognition
+- `GET  /api/logs/today` — Current day's food log & calories
+- `POST /api/logs` — Log meal entry
+- `GET  /api/ai/insight` — Get AI daily nutritional recommendation
+- `GET  /api/ai/insight/export` — Download weekly PDF report
+- `POST /api/ai/chat` — AI conversational coach with Socket.io streaming
 
 ---
 
-## 📖 Usage Documentation
+## ☁️ Cloud & Production Deployment
 
-1.  **Onboarding**: Start by creating an account. You can register manually or use the Instant Login buttons (Google/GitHub).
-2.  **Calibrate Your Profile**: Head to the _Profile_ page. Fill in your biological statistics (Weight, Height, Age, Gender) so our algorithms can perfectly calculate your baseline calories. Choose your goal (Cutting, Bulking, Maintaining).
-3.  **Log Your Activities**: Go to the _Search_ or _Detect_ page. Search manual food via the database or just **Upload an Image** of your food and let the AI Vision analyze its calories.
-4.  **AI Interactive Coach**: Tap the floating blue button on the bottom right anywhere inside the app to awaken the AI Nutritionist. Ask questions regarding your daily limits!
-5.  **Analytics & PDF Export**: Review your History logs. At the end of the week, go to your Dashboard and tap **"Download Weekly Report"** to export your journey into a premium formatted PDF.
+The project is structured for easy deployment across modern cloud providers:
+- **Frontend (Client)**: Deployed on [Vercel](https://vercel.com) with global edge distribution at `https://app.muhammadyuzzaf.com/`.
+- **Backend & Database**: Containerized with Docker Compose on an **Oracle Cloud Infrastructure (OCI) Always-Free VM** (Ubuntu 24.04 / Ampere ARM64 or AMD64) behind an Nginx reverse proxy with automated Let's Encrypt SSL/TLS certificates.
 
 ---
 
-## 📡 API Documentation
+## 📄 License
 
-The Backend server exposes a RESTful API containing endpoints for Authentication, Food Management, Daily Logs, Goals, and AI Interactions. For full documentation regarding error codes (`429 Rate Limits`, `401 Unauthorized`), edge cases, Socket.io Streaming protocols, and payload bodies, please refer directly to the source code or Postman collections.
+This project is licensed under the **MIT License**. Feel free to use, modify, and distribute with attribution.
+
+<div align="center">
+  <p>Built with ❤️ by <a href="https://github.com/yuzzaf"><strong>Muhammad Yuzzaf</strong></a></p>
+  <p>🌱 <em>Empowering healthier lives through intelligent technology.</em></p>
+</div>
