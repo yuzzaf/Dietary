@@ -1,7 +1,6 @@
 const { searchEdamam } = require("./edamam.service.js");
 const { searchFatSecret } = require("./fatsecret.service.js");
 const logger = require("../helpers/logger.js");
-const { detectFoodHF } = require("./ai/detect.service.js");
 const { detectWithGemini } = require("./ai/gemini.service.js");
 
 const searchFood = async (query) => {
@@ -54,30 +53,23 @@ const normalizeLabel = (label) => {
 };
 
 const detectFoodService = async (file) => {
-  let hfResult;
   let geminiResult;
 
   try {
-    hfResult = await detectFoodHF(file);
-  } catch {
-    hfResult = null;
-  }
-  
-  let detected = hfResult?.label ? normalizeLabel(hfResult.label) : null;
-  let aiSource = detected ? "huggingface" : null;
-
-  if (!detected) {
-    try {
-      geminiResult = await detectWithGemini(file);
-      detected = geminiResult ? normalizeLabel(geminiResult) : null;
-      if (detected) aiSource = "gemini";
-    } catch {
-      geminiResult = null;
-    }
+    geminiResult = await detectWithGemini(file);
+  } catch (err) {
+    logger.error({ message: "Gemini Detection Error", error: err.message });
+    geminiResult = null;
   }
 
+  const detected = geminiResult ? normalizeLabel(geminiResult) : null;
+
   if (!detected) {
-    throw { name: "BadRequest", message: "Detection failed. The AI model is currently loading or your API limit is reached. Please try again in a few minutes." };
+    throw {
+      name: "BadRequest",
+      message:
+        "Detection failed. The AI model is currently loading or your API limit is reached. Please try again in a few minutes.",
+    };
   }
 
   const results = await searchFood(detected);
@@ -86,7 +78,7 @@ const detectFoodService = async (file) => {
     return {
       detected,
       options: [],
-      aiSource,
+      aiSource: "gemini",
       message: "Food not found, try manual input",
     };
   }
@@ -94,7 +86,7 @@ const detectFoodService = async (file) => {
   return {
     detected,
     options: results,
-    aiSource
+    aiSource: "gemini",
   };
 };
 

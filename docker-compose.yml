@@ -1,11 +1,9 @@
 # ---------------------------------------------------------------------------
-# Dietary - full stack for Oracle Cloud (Ampere/AMD VM) via docker compose.
+# Dietary Backend - API & PostgreSQL via Docker Compose
+# (Client is hosted externally on Vercel: https://app.muhammadyuzzaf.com/)
 #
 #   1. cp .env.docker.example .env      # then fill in the secrets
 #   2. docker compose up -d --build
-#
-# Only the client container publishes a port (80/443 through the reverse proxy
-# or directly). Postgres and the API stay on the internal network.
 # ---------------------------------------------------------------------------
 name: dietary
 
@@ -40,21 +38,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
     environment:
       NODE_ENV: production
       PORT: "3000"
       # Points at the internal service name; never exposed to the host.
-      # For a TLS-enabled managed database, append ?sslmode=require here -
-      # node-postgres reads it from the URL, no other change needed.
+      # For a TLS-enabled managed database, append ?sslmode=require here.
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-Dietary}
-      # Tokens/cookies are only same-origin through nginx, but the browser does
-      # send Origin, so the real public URL must be listed here (comma separated)
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      # Public frontend origin allowed to call this API (e.g. Vercel deployment)
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://app.muhammadyuzzaf.com}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
-      # --- application secrets (passed through from the root .env) ---------
+      # --- application secrets (passed through from root .env) -------------
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      HF_TOKEN: ${HF_TOKEN:-}
       EDAMAM_APP_ID: ${EDAMAM_APP_ID:-}
       EDAMAM_APP_KEY: ${EDAMAM_APP_KEY:-}
       FATSECRET_CLIENT_ID: ${FATSECRET_CLIENT_ID:-}
@@ -67,36 +64,12 @@ services:
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       EMAIL_USER: ${EMAIL_USER:-}
       EMAIL_PASS: ${EMAIL_PASS:-}
-    expose:
-      - "3000"
     volumes:
-      # Docker-layer fix, no app code touched: server/config/config.json forces
-      # dialectOptions.ssl.require = true under NODE_ENV=production, but a stock
-      # postgres container serves no TLS, so node-postgres aborts with
-      # "The server does not support SSL connections". This read-only mount
-      # overrides the container's copy with the same config minus that block.
-      # Removing it re-breaks the API -> database connection.
+      # Docker-layer fix: server/config/config.json forces dialectOptions.ssl.require = true
+      # under NODE_ENV=production. The stock postgres container serves no TLS, so node-postgres
+      # aborts with "The server does not support SSL connections". This read-only mount overrides
+      # the container's copy with the non-ssl version for local/internal docker db.
       - ./server/config/config.docker.json:/app/config/config.json:ro
-    networks: [dietary]
-
-  client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      args:
-        # Relative URL: the browser calls the nginx origin, nginx proxies to
-        # the API container. No CORS, no hardcoded IP.
-        VITE_API_URL: ${VITE_API_URL:-/api}
-        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
-        VITE_GITHUB_CLIENT_ID: ${VITE_GITHUB_CLIENT_ID:-}
-    image: dietary-client:latest
-    container_name: dietary-client
-    restart: unless-stopped
-    depends_on:
-      - server
-    ports:
-      # Oracle VM Security List + ufw must allow whichever port you choose
-      - "${CLIENT_PORT:-80}:80"
     networks: [dietary]
 
 volumes:

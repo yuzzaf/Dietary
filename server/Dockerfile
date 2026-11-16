@@ -23,10 +23,11 @@ WORKDIR /app
 # tini = PID 1 so SIGTERM/Docker stop is forwarded and zombies are reaped
 RUN apk add --no-cache tini
 
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copy dependencies and application files directly with node user ownership
+# to prevent intermediate layer file duplication from 'RUN chown -R'
+COPY --chown=node:node --from=deps /app/node_modules ./node_modules
+COPY --chown=node:node . .
 
-RUN chown -R node:node /app
 USER node
 
 EXPOSE 3000
@@ -35,8 +36,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "require('http').get({host:'127.0.0.1',port:process.env.PORT||3000,path:'/',timeout:4000},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
-ENTRYPOINT ["/sbin/tini","--"]
+ENTRYPOINT ["/sbin/tini", "--"]
 
 # Apply pending migrations (set RUN_MIGRATIONS=false to skip, e.g. on a
 # read-only replica) and then hand over to the HTTP + Socket.io server.
-CMD ["sh","-c","if [ \"${RUN_MIGRATIONS:-true}\" = \"true\" ]; then echo '[entrypoint] sequelize-cli db:migrate'; npx --no-install sequelize-cli db:migrate || exit 1; fi; exec node ./bin/www"]
+CMD ["sh", "-c", "if [ \"${RUN_MIGRATIONS:-true}\" = \"true\" ]; then echo '[entrypoint] sequelize-cli db:migrate'; npx --no-install sequelize-cli db:migrate || exit 1; fi; exec node ./bin/www"]

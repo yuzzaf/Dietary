@@ -146,33 +146,31 @@ npm run dev
 
 ## 🐳 Docker Deployment
 
-The whole stack (PostgreSQL + Express/Socket.io API + React PWA served by nginx) can be run with a single command — nothing but Docker has to be installed, no local Node.js or PostgreSQL.
+The backend stack (PostgreSQL + Express/Socket.io API) is containerized with Docker Compose. The React PWA client is hosted separately on Vercel at [https://app.muhammadyuzzaf.com/](https://app.muhammadyuzzaf.com/).
 
 ```text
-┌───────────────┐   :80   ┌──────────────────────────┐   :3000   ┌───────────────┐
-│   Browser     │ ──────▶ │  client (nginx)          │ ────────▶ │  server       │
-│  (PWA / SPA)  │         │  static build + /api,    │           │  Express +    │
-└───────────────┘         │  /socket.io reverse proxy│           │  Socket.io    │
-                          └──────────────────────────┘           └───────┬───────┘
-                                                                   :5432 │
-                                                          ┌──────────────▼─────────┐
-                                                          │  db (postgres:16-alpine)│
-                                                          │  volume: dietary_db_data│
-                                                          └────────────────────────┘
+┌──────────────────────────┐             :3000   ┌───────────────┐
+│  Client (Vercel)         │ ──────────────────▶ │  server       │
+│  app.muhammadyuzzaf.com  │   CORS / REST /     │  Express +    │
+│  (React PWA / Vite)      │   Socket.io         │  Socket.io    │
+└──────────────────────────┘                     └───────┬───────┘
+                                                   :5432 │
+                                          ┌──────────────▼─────────┐
+                                          │  db (postgres:16-alpine)│
+                                          │  volume: dietary_db_data│
+                                          └────────────────────────┘
 ```
 
-### Files added
+### Files added / configured
 
 | File | Purpose |
 | --- | --- |
-| `docker-compose.yml` | Orchestrates `db`, `server`, `client` on a private bridge network |
-| `.env.docker.example` | Template for every variable compose needs |
-| `server/Dockerfile` | Node 22 alpine, multi-stage, runs as non-root, applies migrations on boot |
-| `server/config/config.docker.json` | DB config mounted over the container's copy to drop the hardcoded `ssl.require` (see caveats) |
+| `docker-compose.yml` | Orchestrates `db` and `server` on a private bridge network; exposes port 3000 |
+| `.env.docker.example` | Template for environment variables compose needs |
+| `server/Dockerfile` | Node 22 alpine, multi-stage, non-root, tini PID 1, applies migrations on boot |
+| `server/config/config.docker.json` | DB config mounted over the container's copy to drop hardcoded `ssl.require` |
 | `server/.dockerignore` | Keeps `node_modules`, `coverage`, `__tests__`, `.env` out of the image |
-| `client/Dockerfile` | Vite build → nginx alpine |
-| `client/nginx.conf` | SPA fallback + `proxy_pass` for `/api` and `/socket.io` |
-| `client/.dockerignore` | Keeps `node_modules`, `dist`, `.env` out of the build context |
+| `client/vercel.json` | SPA routing configuration for Vercel deployment |
 
 ### 1. Configure the environment
 
@@ -181,19 +179,16 @@ cd ip-yuzzaf
 cp .env.docker.example .env
 ```
 
-Edit `.env`. The three values that actually matter for a first boot:
+Edit `.env`. The key values:
 
 ```env
 POSTGRES_PASSWORD=<strong_password>
 JWT_SECRET=<strong_random_secret>
-CORS_ORIGIN=http://<your-oracle-public-ip>   # or https://yourdomain.com
+CORS_ORIGIN=https://app.muhammadyuzzaf.com   # Vercel domain or http://localhost:5173
+PORT=3000
 ```
 
-Everything else (Gemini, FatSecret, Cloudinary, OAuth, SMTP) can stay empty — the API boots and the database still migrates; only the features using those keys will fail.
-
-> **Why `VITE_API_URL=/api`?** The browser talks to nginx on the same origin, and nginx proxies to the API container. No hardcoded IP, no CORS preflight, and Socket.io works through the same port. Vite bakes this in at **build time**, so changing it requires `docker compose up -d --build`.
->
-> This also required a one-line fix in `client/src/components/common/Chatbot.jsx`: it built the Socket.io URL with `apiUrl.replace("/api", "")`, which turns a relative `/api` into `""`, and `io("")` produces the invalid URI `http://`. It now passes `undefined` when the result is empty, so socket.io-client falls back to `window.location` — verified against `socket.io-client` 4.x. Absolute URLs (the old `http://localhost:3000`) behave exactly as before.
+Everything else (Gemini, FatSecret, Edamam, Cloudinary, OAuth, SMTP) can be filled in as needed. Food detection uses Google Gemini (`GEMINI_API_KEY`).
 
 ### 2. Build & start
 
@@ -203,14 +198,7 @@ docker compose ps
 docker compose logs -f server   # watch "sequelize-cli db:migrate" then the boot log
 ```
 
-| URL | What |
-| --- | --- |
-| `http://<host>/` | React PWA |
-| `http://<host>/api` | REST API root — returns `{"message":"API is ready!"}` |
-
-(No `/api/health` endpoint exists; the container healthchecks use `GET /` on the API and `GET /` on nginx.)
-
-The `server` container runs `sequelize-cli db:migrate` automatically before starting `bin/www` (set `RUN_MIGRATIONS=false` to skip it, e.g. when scaling to several replicas).
+The `server` container runs `sequelize-cli db:migrate` automatically before starting `bin/www` (set `RUN_MIGRATIONS=false` to skip it).
 
 ### 3. Common operations
 

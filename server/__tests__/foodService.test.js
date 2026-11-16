@@ -1,12 +1,10 @@
 const { searchFood, detectFoodService } = require("../services/food.service");
 const edamam = require("../services/edamam.service");
 const fatsecret = require("../services/fatsecret.service");
-const hf = require("../services/ai/detect.service");
 const gemini = require("../services/ai/gemini.service");
 
 jest.mock("../services/edamam.service");
 jest.mock("../services/fatsecret.service");
-jest.mock("../services/ai/detect.service");
 jest.mock("../services/ai/gemini.service");
 jest.mock("../helpers/logger", () => ({
   error: jest.fn(),
@@ -68,42 +66,30 @@ describe("Food Service Validation", () => {
   describe("detectFoodService", () => {
     const fakeFile = { buffer: Buffer.from("test"), mimetype: "image/jpeg" };
 
-    it("should return search options when HF detects successfully", async () => {
-      // HF successfully detects "burger"
-      hf.detectFoodHF.mockResolvedValueOnce({ label: "burger" });
+    it("should return search options when Gemini detects successfully", async () => {
+      gemini.detectWithGemini.mockResolvedValueOnce("burger");
       edamam.searchEdamam.mockResolvedValueOnce([{ name: "Burger", calories: 500 }]);
 
       const result = await detectFoodService(fakeFile);
       expect(result.detected).toBe("burger");
       expect(result.options).toHaveLength(1);
-      expect(hf.detectFoodHF).toHaveBeenCalled();
-      expect(gemini.detectWithGemini).not.toHaveBeenCalled();
-    });
-
-    it("should fallback to gemini if HF fails to detect", async () => {
-      hf.detectFoodHF.mockRejectedValueOnce(new Error("HF Error"));
-      gemini.detectWithGemini.mockResolvedValueOnce("pizza");
-      edamam.searchEdamam.mockResolvedValueOnce([{ name: "Pizza", calories: 800 }]);
-
-      const result = await detectFoodService(fakeFile);
-      expect(result.detected).toBe("pizza");
-      expect(result.options).toHaveLength(1);
-      expect(gemini.detectWithGemini).toHaveBeenCalled();
+      expect(result.aiSource).toBe("gemini");
+      expect(gemini.detectWithGemini).toHaveBeenCalledWith(fakeFile);
     });
 
     it("should normalize labels like 'dish' to 'food'", async () => {
-      hf.detectFoodHF.mockResolvedValueOnce({ label: "dish" });
+      gemini.detectWithGemini.mockResolvedValueOnce("dish");
       edamam.searchEdamam.mockResolvedValueOnce([]);
       fatsecret.searchFatSecret.mockResolvedValueOnce([]);
 
       const result = await detectFoodService(fakeFile);
       expect(result.detected).toBe("food");
       expect(result.options).toEqual([]);
+      expect(result.aiSource).toBe("gemini");
       expect(result.message).toBe("Food not found, try manual input");
     });
 
-    it("should throw error if both AI detections fail", async () => {
-      hf.detectFoodHF.mockRejectedValueOnce(new Error("HF limit"));
+    it("should throw error if Gemini detection fails or returns null", async () => {
       gemini.detectWithGemini.mockRejectedValueOnce(new Error("Gemini limit"));
 
       await expect(detectFoodService(fakeFile)).rejects.toHaveProperty("name", "BadRequest");
