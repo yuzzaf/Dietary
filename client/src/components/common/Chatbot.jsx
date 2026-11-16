@@ -3,14 +3,20 @@ import { useSelector } from "react-redux";
 import { sendChatMessage } from "../../services/insightService";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+import { useLanguage } from "../../context/LanguageContext";
 
 const Chatbot = () => {
+  const { lang } = useLanguage();
+  const isEn = lang === "en";
+
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: "model",
-      text: "Hi! I'm your AI Nutrition Assistant. Ask me anything about calories, macro goals, or healthy food choices.",
+      text: isEn
+        ? "Hi! I'm your AI Nutrition Assistant. Ask me anything about calories, macro goals, or healthy food choices."
+        : "Halo! Saya Asisten Nutrisi AI Anda. Tanyakan apa saja tentang kalori, target nutrisi, atau pilihan makanan sehat.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -79,9 +85,12 @@ const Chatbot = () => {
     if (!input.trim() || isLoading) return;
 
     if (!isAuthenticated) {
-      toast("Please sign in to chat with the AI Nutrition Assistant", {
-        icon: "🔒",
-      });
+      toast(
+        isEn
+          ? "Please sign in to chat with the AI Nutrition Assistant"
+          : "Silakan masuk untuk mengobrol dengan Asisten Nutrisi AI",
+        { icon: "🔒" },
+      );
       return;
     }
 
@@ -94,8 +103,12 @@ const Chatbot = () => {
       const socketId = socketRef.current?.id;
       setMessages((prev) => [...prev, { role: "model", text: "" }]);
 
+      const outgoingHistory = messages.filter(
+        (m, i) => !(i === 0 && m.role === "model"),
+      );
+
       const response = await sendChatMessage(
-        messages.concat({ role: "user", text: userMessage }),
+        outgoingHistory,
         userMessage,
         socketId,
       );
@@ -113,7 +126,9 @@ const Chatbot = () => {
         ...prev.slice(0, -1),
         {
           role: "model",
-          text: "Sorry, I am having trouble connecting to the AI server. Please try again later.",
+          text: isEn
+            ? "Sorry, I am having trouble connecting to the AI server. Please try again later."
+            : "Maaf, terjadi kendala saat menghubungi server AI. Silakan coba lagi nanti.",
         },
       ]);
     }
@@ -121,10 +136,8 @@ const Chatbot = () => {
 
   return (
     <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end">
-      {/* Chat Window */}
       {isOpen && (
         <div className="bg-white w-[calc(100vw-32px)] sm:w-[380px] max-w-[380px] max-h-[75vh] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.14)] border border-zinc-200/90 mb-3 overflow-hidden flex flex-col animate-[slideUp_0.25s_cubic-bezier(0.16,1,0.3,1)]">
-          {/* Header */}
           <div className="bg-zinc-900 p-3.5 text-white flex justify-between items-center">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm">
@@ -170,7 +183,6 @@ const Chatbot = () => {
             </button>
           </div>
 
-          {/* Messages Area */}
           <div
             ref={messagesContainerRef}
             className="flex-1 p-3.5 h-80 overflow-y-auto bg-zinc-50/50 flex flex-col gap-2.5"
@@ -212,7 +224,6 @@ const Chatbot = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <form
             onSubmit={handleSubmit}
             className="p-2.5 bg-white border-t border-zinc-100 flex gap-2 items-center"
@@ -221,7 +232,7 @@ const Chatbot = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your diet or calories..."
+              placeholder={isEn ? "Ask about your diet or calories..." : "Tanyakan seputar diet atau kalori Anda..."}
               className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 transition"
               disabled={isLoading}
             />
@@ -243,7 +254,6 @@ const Chatbot = () => {
         </div>
       )}
 
-      {/* Floating Toggle Button */}
       <button
         onClick={toggleChat}
         className={`bg-zinc-900 text-white p-3.5 rounded-full shadow-lg shadow-zinc-900/20 hover:bg-zinc-800 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center cursor-pointer ${
