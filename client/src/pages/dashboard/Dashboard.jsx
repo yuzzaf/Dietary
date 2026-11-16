@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { Link } from "react-router";
@@ -12,6 +12,74 @@ import { exportWeeklyInsightPdf } from "../../services/insightService";
 import { formatCalories } from "../../utils/formatCalories";
 import Loader from "../../components/common/Loader";
 import TypewriterText from "../../components/common/TypewriterText";
+
+const SAMPLE_MEALS = [
+  {
+    name: "Grilled Salmon Quinoa Bowl",
+    tag: "Balanced High-Protein",
+    image:
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=80",
+    match: "99.4%",
+    detectedName: "Mediterranean Salmon Bowl",
+    calories: 540,
+    protein: 42,
+    carbs: 34,
+    fat: 18,
+    remark:
+      "Optimal post-workout nutrient density. Fits comfortably within your daily goal.",
+  },
+  {
+    name: "Grilled Chicken & Brown Rice",
+    tag: "Lean Muscle Building",
+    image:
+      "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=1000&q=80",
+    match: "98.8%",
+    detectedName: "Chicken Breast & Grain Plate",
+    calories: 610,
+    protein: 48,
+    carbs: 58,
+    fat: 11,
+    remark:
+      "High protein with clean complex carbohydrates for steady glycogen replenishment.",
+  },
+  {
+    name: "Avocado Poached Egg Toast",
+    tag: "Healthy Fats & Fiber",
+    image:
+      "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=1000&q=80",
+    match: "99.1%",
+    detectedName: "Avocado Sourdough Toast",
+    calories: 390,
+    protein: 16,
+    carbs: 36,
+    fat: 21,
+    remark:
+      "Rich in monounsaturated fats, dietary fiber, and micronutrients for sustained morning focus.",
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Bagaimana cara Google Gemini mendeteksi makanan dari foto?",
+    answer:
+      "Model vision Google Gemini menganalisis tekstur visual, porsi, dan bahan makanan pada foto piring Anda secara langsung. Hasil deteksi kemudian dicocokkan otomatis dengan basis data gizi klinis Edamam & FatSecret untuk menghitung gramasi dan estimasi kalorinya.",
+  },
+  {
+    question: "Apakah Dietary bisa mengenali makanan lokal Indonesia?",
+    answer:
+      "Tentu saja! Gemini dilatih dengan jutaan data kuliner internasional dan Nusantara—seperti Nasi Goreng, Rendang, Gado-Gado, Sate, hingga Tempe Goreng. Selain lewat foto, Anda juga bisa mencari ribuan menu lokal lewat menu 'Search Food'.",
+  },
+  {
+    question: "Bagaimana cara kerja laporan nutrisi mingguan (PDF Export)?",
+    answer:
+      "Setiap makanan yang Anda catat akan dirangkum otomatis. Kapan saja, Anda bisa menekan tombol 'Export PDF' di dashboard untuk mengunduh laporan klinis lengkap berisi grafik asupan kalori, status defisit, dan saran asisten AI untuk dokter atau nutrisionis Anda.",
+  },
+  {
+    question: "Apakah saya harus membayar biaya langganan?",
+    answer:
+      "Tidak. Seluruh fitur utama Dietary—mulai dari deteksi AI Gemini, database 100.000+ makanan, pelacak hidrasi, hingga ekspor PDF—tersedia 100% gratis tanpa kartu kredit.",
+  },
+];
 
 const Dashboard = () => {
   const root = useRef(null);
@@ -27,6 +95,64 @@ const Dashboard = () => {
     weeklyLoading,
   } = useSelector((state) => state.insight);
   const { userGoal, goalLoading } = useSelector((state) => state.user);
+
+  // Landing Page Interactive States
+  const [activeSampleMeal, setActiveSampleMeal] = useState(0);
+  const [openFaq, setOpenFaq] = useState(null);
+
+  // TDEE Calculator States (Landing)
+  const [calcGender, setCalcGender] = useState("male");
+  const [calcAge, setCalcAge] = useState(25);
+  const [calcWeight, setCalcWeight] = useState(70);
+  const [calcHeight, setCalcHeight] = useState(170);
+  const [calcActivity, setCalcActivity] = useState(1.375);
+
+  const calculatedTdee = useMemo(() => {
+    const w = Number(calcWeight) || 70;
+    const h = Number(calcHeight) || 170;
+    const a = Number(calcAge) || 25;
+    const act = Number(calcActivity) || 1.375;
+    let bmr = 10 * w + 6.25 * h - 5 * a;
+    if (calcGender === "male") {
+      bmr += 5;
+    } else {
+      bmr -= 161;
+    }
+    return Math.max(1200, Math.round(bmr * act));
+  }, [calcGender, calcAge, calcWeight, calcHeight, calcActivity]);
+
+  // Water Hydration State (Authenticated View)
+  const todayDateStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const waterKey = `dietary_water_${todayDateStr}`;
+
+  const [waterGlasses, setWaterGlasses] = useState(() => {
+    try {
+      const saved = localStorage.getItem(waterKey);
+      return saved ? parseInt(saved, 10) : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  const handleWaterChange = (delta) => {
+    setWaterGlasses((prev) => {
+      const next = Math.max(0, Math.min(16, prev + delta));
+      try {
+        localStorage.setItem(waterKey, next.toString());
+      } catch {
+        // ignore storage errors
+      }
+      if (next === 8 && prev < 8) {
+        toast.success(
+          "💧 Selamat! Anda telah mencapai target 8 gelas air hari ini!",
+          {
+            icon: "🎉",
+          },
+        );
+      }
+      return next;
+    });
+  };
 
   const handleExportPdf = async () => {
     const toastId = toast.loading("Generating PDF Report...");
@@ -112,10 +238,14 @@ const Dashboard = () => {
   )
     return <Loader />;
 
-  // Landing view for unauthenticated users
+  // -------------------------------------------------------------
+  // LANDING VIEW (UNAUTHENTICATED)
+  // -------------------------------------------------------------
   if (!isAuthenticated) {
+    const currentMeal = SAMPLE_MEALS[activeSampleMeal];
+
     return (
-      <div className="flex flex-col items-center justify-center py-10 px-4 text-center space-y-24 animate-fade-in max-w-6xl mx-auto">
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-20 sm:space-y-24 animate-fade-in max-w-6xl mx-auto">
         {/* 1. Hero Section */}
         <section className="max-w-3xl space-y-6 pt-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
@@ -174,8 +304,32 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* 2. Interactive Product Mockup / App Preview */}
-        <section className="w-full max-w-5xl">
+        {/* 2. Interactive Product Mockup / App Preview with Food Switcher */}
+        <section className="w-full max-w-5xl space-y-4">
+          {/* Interactive Meal Tabs */}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span className="text-xs font-semibold text-zinc-400 mr-1 hidden sm:inline">
+              Pilih Contoh Piring:
+            </span>
+            {SAMPLE_MEALS.map((meal, index) => (
+              <button
+                key={meal.name}
+                onClick={() => setActiveSampleMeal(index)}
+                className={`text-xs px-3.5 py-1.5 rounded-full transition-all cursor-pointer font-medium ${
+                  activeSampleMeal === index
+                    ? "bg-zinc-900 text-white shadow-sm"
+                    : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"
+                }`}
+              >
+                {index === 0
+                  ? "🥗 Salad Bowl"
+                  : index === 1
+                    ? "🍗 Herb Chicken"
+                    : "🥑 Avocado Toast"}
+              </button>
+            ))}
+          </div>
+
           <div className="relative rounded-2xl border border-zinc-200/80 bg-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] overflow-hidden text-left">
             {/* Window Topbar */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50/70">
@@ -197,20 +351,20 @@ const Dashboard = () => {
               {/* Left Photo Showcase */}
               <div className="md:col-span-7 relative bg-zinc-900 overflow-hidden group">
                 <img
-                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=80"
-                  alt="Healthy Salmon Salad Meal Bowl"
-                  className="w-full h-72 sm:h-96 md:h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                  src={currentMeal.image}
+                  alt={currentMeal.name}
+                  className="w-full h-72 sm:h-96 md:h-full object-cover opacity-90 transition-all duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
 
                 {/* Floating Scanner Box */}
                 <div className="absolute top-6 left-6 right-6 bottom-6 border-2 border-dashed border-blue-400/60 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
-                  <div className="self-start bg-zinc-900/80 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-white/10 flex items-center gap-1.5 shadow-sm">
+                  <div className="self-start bg-zinc-900/85 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-md border border-white/10 flex items-center gap-1.5 shadow-sm">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    Target Detected: Mediterranean Bowl
+                    Target Detected: {currentMeal.detectedName}
                   </div>
                   <div className="self-end bg-blue-600/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm">
-                    99.4% Match
+                    {currentMeal.match} Match
                   </div>
                 </div>
               </div>
@@ -223,15 +377,15 @@ const Dashboard = () => {
                       Classified Meal
                     </span>
                     <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
-                      Balanced
+                      {currentMeal.tag}
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-zinc-900">
-                    Grilled Salmon Quinoa Bowl
+                    {currentMeal.name}
                   </h3>
                   <p className="text-xs text-zinc-500 mt-1">
-                    Rich in healthy omega-3 fatty acids, complex carbs, and lean
-                    protein.
+                    Verified through FatSecret & Edamam nutrition database
+                    engines.
                   </p>
                 </div>
 
@@ -242,7 +396,7 @@ const Dashboard = () => {
                       Total Calories
                     </span>
                     <span className="text-xl font-extrabold text-zinc-900 tabular-nums">
-                      540{" "}
+                      {currentMeal.calories}{" "}
                       <span className="text-xs font-normal text-zinc-500">
                         kcal
                       </span>
@@ -253,7 +407,7 @@ const Dashboard = () => {
                       Protein
                     </span>
                     <span className="text-xl font-extrabold text-blue-900 tabular-nums">
-                      42{" "}
+                      {currentMeal.protein}{" "}
                       <span className="text-xs font-normal text-blue-600">
                         g
                       </span>
@@ -264,7 +418,7 @@ const Dashboard = () => {
                       Carbs
                     </span>
                     <span className="text-xl font-extrabold text-amber-900 tabular-nums">
-                      34{" "}
+                      {currentMeal.carbs}{" "}
                       <span className="text-xs font-normal text-amber-600">
                         g
                       </span>
@@ -275,7 +429,7 @@ const Dashboard = () => {
                       Healthy Fats
                     </span>
                     <span className="text-xl font-extrabold text-rose-900 tabular-nums">
-                      18{" "}
+                      {currentMeal.fat}{" "}
                       <span className="text-xs font-normal text-rose-600">
                         g
                       </span>
@@ -298,8 +452,7 @@ const Dashboard = () => {
                     <strong className="text-white font-semibold">
                       AI Coach:
                     </strong>{" "}
-                    Excellent choice. You have reached 68% of your protein goal
-                    for today.
+                    {currentMeal.remark}
                   </p>
                 </div>
               </div>
@@ -307,7 +460,170 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* 3. How It Works - 3 Step Flow */}
+        {/* 3. Interactive Quick TDEE & Calorie Calculator */}
+        <section className="w-full max-w-4xl bg-white rounded-3xl border border-zinc-200/80 p-6 sm:p-10 shadow-sm text-left">
+          <div className="max-w-2xl mb-8">
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-600">
+              Interactive Tool
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight mt-1">
+              Kalkulator Kebutuhan Kalori Instan (TDEE)
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-500 mt-1.5">
+              Cari tahu berapa banyak kalori yang dibutuhkan tubuh Anda setiap
+              hari untuk menjaga, menurunkan, atau menaikkan berat badan.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Form Inputs */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Gender */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1.5">
+                  Gender
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCalcGender("male")}
+                    className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                      calcGender === "male"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
+                        : "bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+                    }`}
+                  >
+                    Laki-laki
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCalcGender("female")}
+                    className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                      calcGender === "female"
+                        ? "bg-blue-50 border-blue-600 text-blue-700"
+                        : "bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100"
+                    }`}
+                  >
+                    Perempuan
+                  </button>
+                </div>
+              </div>
+
+              {/* Age, Weight, Height */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                    Usia (thn)
+                  </label>
+                  <input
+                    type="number"
+                    min="15"
+                    max="100"
+                    value={calcAge}
+                    onChange={(e) => setCalcAge(e.target.value)}
+                    className="w-full text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-zinc-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                    Berat (kg)
+                  </label>
+                  <input
+                    type="number"
+                    min="30"
+                    max="200"
+                    value={calcWeight}
+                    onChange={(e) => setCalcWeight(e.target.value)}
+                    className="w-full text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-zinc-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                    Tinggi (cm)
+                  </label>
+                  <input
+                    type="number"
+                    min="100"
+                    max="230"
+                    value={calcHeight}
+                    onChange={(e) => setCalcHeight(e.target.value)}
+                    className="w-full text-xs font-semibold bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-zinc-900 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                  />
+                </div>
+              </div>
+
+              {/* Activity Level */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-700 mb-1">
+                  Tingkat Aktivitas Harian
+                </label>
+                <select
+                  value={calcActivity}
+                  onChange={(e) => setCalcActivity(parseFloat(e.target.value))}
+                  className="w-full text-xs font-medium bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-zinc-800 focus:outline-none focus:border-blue-600 focus:bg-white transition"
+                >
+                  <option value={1.2}>
+                    Sedentary (Jarang bergerak / kerja kantoran)
+                  </option>
+                  <option value={1.375}>
+                    Lightly Active (Olahraga ringan 1-3 hari/minggu)
+                  </option>
+                  <option value={1.55}>
+                    Moderately Active (Olahraga sedang 3-5 hari/minggu)
+                  </option>
+                  <option value={1.725}>
+                    Very Active (Latihan berat 6-7 hari/minggu)
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            {/* Live Result Card */}
+            <div className="lg:col-span-5 bg-gradient-to-br from-zinc-900 to-zinc-950 text-white p-6 sm:p-7 rounded-2xl flex flex-col justify-between space-y-5 shadow-lg">
+              <div>
+                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+                  Kebutuhan Kalori Harian Anda
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl sm:text-5xl font-black tabular-nums tracking-tight text-white">
+                    {calculatedTdee.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-semibold text-zinc-400">
+                    kcal/hari
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed">
+                  Estimasi kalori pemeliharaan (maintenance) metabolisme tubuh
+                  Anda berdasarkan standar Mifflin-St Jeor.
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-zinc-800/80 space-y-2">
+                <div className="flex justify-between text-xs text-zinc-300">
+                  <span>Defisit Penurunan Berat (-400 kcal)</span>
+                  <strong className="text-emerald-400 font-semibold">
+                    {Math.max(1200, calculatedTdee - 400)} kcal
+                  </strong>
+                </div>
+                <div className="flex justify-between text-xs text-zinc-300">
+                  <span>Surplus Pembentukan Otot (+300 kcal)</span>
+                  <strong className="text-blue-400 font-semibold">
+                    {calculatedTdee + 300} kcal
+                  </strong>
+                </div>
+              </div>
+
+              <Link
+                to="/register"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl text-center shadow-md transition active:scale-[0.98]"
+              >
+                Gunakan Target Ini & Daftar Gratis
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. How It Works - 3 Step Flow */}
         <section className="w-full max-w-5xl space-y-12">
           <div className="space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-widest text-blue-600">
@@ -426,7 +742,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* 4. Trust & Precision Metrics */}
+        {/* 5. Trust & Precision Metrics */}
         <section className="w-full max-w-5xl py-8 px-6 bg-white rounded-2xl border border-zinc-200/80 shadow-sm">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="space-y-1">
@@ -462,96 +778,49 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* 5. Bento Features Grid */}
-        <section className="w-full max-w-5xl space-y-6">
+        {/* 6. Frequently Asked Questions (FAQ) Accordion */}
+        <section className="w-full max-w-4xl space-y-6 text-left">
           <div className="text-center space-y-2">
             <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-400">
-              Capabilities
+              Pertanyaan Populer
             </h2>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">
-              Built for serious wellness
+              Frequently Asked Questions
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-left">
-            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+          <div className="space-y-3">
+            {FAQ_ITEMS.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={faq.question}
+                  className="bg-white rounded-2xl border border-zinc-200/80 overflow-hidden shadow-sm transition-all"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-zinc-900 mb-1.5">
-                Instant Vision Scanner
-              </h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Snap a photo of your food plate. Google Gemini computer vision
-                classifies and calculates caloric estimates instantly.
-              </p>
-            </div>
-
-            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
-              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-zinc-900 mb-1.5">
-                Verified Nutrition Library
-              </h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Access comprehensive, verified macronutrient data for over
-                100,000+ natural and commercial foods via FatSecret & Edamam.
-              </p>
-            </div>
-
-            <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-sm hover:border-zinc-300 transition-all">
-              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-base font-bold text-zinc-900 mb-1.5">
-                Personalized AI Coach
-              </h3>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                Receive smart daily coaching on deficits, macro balances, and
-                tailored meal suggestions to keep your fitness on track.
-              </p>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full p-5 text-left flex justify-between items-center gap-4 cursor-pointer hover:bg-zinc-50/70 transition-colors"
+                  >
+                    <span className="text-sm font-bold text-zinc-900">
+                      {faq.question}
+                    </span>
+                    <span className="w-6 h-6 rounded-full bg-zinc-100 flex items-center justify-center shrink-0 text-zinc-500 text-xs font-bold">
+                      {isOpen ? "−" : "+"}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 text-xs text-zinc-600 leading-relaxed border-t border-zinc-100 pt-3">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </section>
 
-        {/* 6. Ready to Transform CTA Section */}
+        {/* 7. Ready to Transform CTA Section */}
         <section className="w-full max-w-4xl bg-gradient-to-b from-zinc-900 to-zinc-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -581,7 +850,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* 7. Trusted Attribution & Footer */}
+        {/* 8. Trusted Attribution & Footer */}
         <footer className="pt-8 border-t border-zinc-200/60 w-full max-w-4xl flex flex-col items-center justify-center space-y-4">
           <p className="text-[11px] font-bold text-zinc-400 tracking-widest uppercase">
             Verified Clinical Data Partners
@@ -617,7 +886,9 @@ const Dashboard = () => {
     );
   }
 
-  // Dashboard view for authenticated users
+  // -------------------------------------------------------------
+  // AUTHENTICATED DASHBOARD (MEMBER VIEW)
+  // -------------------------------------------------------------
   const logs = todayData?.logs || [];
   const totalCalories = todayData?.totalCalories || 0;
   const targetCalories = userGoal?.targetCalories || 2000;
@@ -628,9 +899,33 @@ const Dashboard = () => {
   const insight = insightData?.insight;
   const weeklyInsights = weeklyData || [];
 
+  // Macro Totals Calculated from Today's Meals
+  const totalProtein = Math.round(
+    logs.reduce(
+      (acc, log) => acc + Number(log.Food?.protein || 0) * (log.quantity || 1),
+      0,
+    ),
+  );
+  const totalCarbs = Math.round(
+    logs.reduce(
+      (acc, log) =>
+        acc + Number(log.Food?.carbohydrates || 0) * (log.quantity || 1),
+      0,
+    ),
+  );
+  const totalFat = Math.round(
+    logs.reduce(
+      (acc, log) => acc + Number(log.Food?.fat || 0) * (log.quantity || 1),
+      0,
+    ),
+  );
+
+  const remainingCalories = targetCalories - totalCalories;
+  const isOverTarget = remainingCalories < 0;
+
   return (
     <div ref={root} className="space-y-6 pb-12 animate-fade-in">
-      {/* Header */}
+      {/* 1. Header with Date and Quick Action Pills */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
@@ -646,7 +941,8 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Quick Action Shortcuts */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             to="/detect"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all"
@@ -661,15 +957,61 @@ const Dashboard = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M12 4v16m8-8H4"
+                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
               />
             </svg>
-            Log Meal
+            Scan Meal
+          </Link>
+
+          <Link
+            to="/search"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-zinc-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            Search Food
+          </Link>
+
+          <Link
+            to="/profile"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all"
+          >
+            <svg
+              className="w-3.5 h-3.5 text-zinc-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            Goal
           </Link>
         </div>
       </header>
 
-      {/* Top Metric Cards */}
+      {/* 2. Top Metric Cards (Calories & AI Coach) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Calorie Card */}
         <div className="stat-card opacity-0 bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
@@ -678,7 +1020,13 @@ const Dashboard = () => {
               <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                 Calorie Target
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+              <span
+                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                  isOverTarget
+                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                    : "bg-blue-50 text-blue-700 border-blue-100"
+                }`}
+              >
                 {caloriePercent}% completed
               </span>
             </div>
@@ -692,10 +1040,33 @@ const Dashboard = () => {
               </span>
             </div>
 
+            {/* Dynamic Status Pill */}
+            <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold">
+              {isOverTarget ? (
+                <span className="text-rose-600 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                  Kelebihan {Math.abs(remainingCalories).toLocaleString()} kcal
+                  hari ini
+                </span>
+              ) : remainingCalories === 0 ? (
+                <span className="text-emerald-600 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                  Target kalori harian tercapai tepat!
+                </span>
+              ) : (
+                <span className="text-emerald-600 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                  Sisa {remainingCalories.toLocaleString()} kcal menuju target
+                </span>
+              )}
+            </div>
+
             {/* Progress Bar */}
-            <div className="w-full bg-zinc-100 h-2 rounded-full mt-5 overflow-hidden">
+            <div className="w-full bg-zinc-100 h-2.5 rounded-full mt-4 overflow-hidden">
               <div
-                className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                className={`h-full rounded-full transition-all duration-500 ease-out ${
+                  isOverTarget ? "bg-rose-500" : "bg-blue-600"
+                }`}
                 style={{ width: `${caloriePercent}%` }}
               />
             </div>
@@ -724,25 +1095,157 @@ const Dashboard = () => {
               </span>
             </div>
 
-            <div className="text-xs text-zinc-600 leading-relaxed bg-zinc-50/70 p-4 rounded-xl border border-zinc-100">
+            <div className="text-xs text-zinc-600 leading-relaxed bg-zinc-50/70 p-4 rounded-xl border border-zinc-100 min-h-[96px] flex items-center">
               {insight ? (
                 <p className="italic">{insight}</p>
               ) : (
                 <p className="text-zinc-400">
                   Log meals throughout the day to receive intelligent calorie
-                  guidance and coaching.
+                  guidance and coaching tailored to your metabolic goal.
                 </p>
               )}
             </div>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-zinc-100 text-xs text-zinc-400">
-            Personalized advice based on your metabolic goals
+          <div className="mt-5 pt-4 border-t border-zinc-100 text-xs text-zinc-400 flex items-center justify-between">
+            <span>Metabolic coaching based on your goals</span>
+            <Link
+              to="/detect"
+              className="font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Scan more &rarr;
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Recent Activity Section */}
+      {/* 3. Daily Macronutrients Breakdown & Hydration Tracker */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+        {/* Macros Breakdown (8 cols) */}
+        <div className="stat-card opacity-0 md:col-span-8 bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)]">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold text-zinc-900 tracking-tight">
+              Today's Macronutrients
+            </h2>
+            <span className="text-[11px] font-medium text-zinc-400">
+              Auto-calculated from meals
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3.5">
+            {/* Protein */}
+            <div className="p-4 rounded-xl bg-blue-50/40 border border-blue-100/80">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">
+                  Protein
+                </span>
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-2xl font-black text-blue-950 tabular-nums">
+                  {totalProtein}
+                </span>
+                <span className="text-xs font-semibold text-blue-600">g</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1">
+                Lean mass recovery
+              </p>
+            </div>
+
+            {/* Carbohydrates */}
+            <div className="p-4 rounded-xl bg-amber-50/40 border border-amber-100/80">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">
+                  Carbs
+                </span>
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-2xl font-black text-amber-950 tabular-nums">
+                  {totalCarbs}
+                </span>
+                <span className="text-xs font-semibold text-amber-600">g</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1">
+                Energy & glycogen
+              </p>
+            </div>
+
+            {/* Fat */}
+            <div className="p-4 rounded-xl bg-rose-50/40 border border-rose-100/80">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider">
+                  Fats
+                </span>
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-2xl font-black text-rose-950 tabular-nums">
+                  {totalFat}
+                </span>
+                <span className="text-xs font-semibold text-rose-600">g</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1">Hormonal balance</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Water / Hydration Tracker (4 cols) */}
+        <div className="stat-card opacity-0 md:col-span-4 bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm">💧</span>
+                <h3 className="text-sm font-bold text-zinc-900">Hydration</h3>
+              </div>
+              <span className="text-[11px] font-bold text-blue-600 tabular-nums bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                {waterGlasses} / 8 Glasses
+              </span>
+            </div>
+
+            <p className="text-xs text-zinc-400 mb-3">Target harian 2,000 ml</p>
+
+            {/* Glasses Visual Bar */}
+            <div className="grid grid-cols-8 gap-1.5 mb-3">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-6 rounded-md transition-all duration-300 ${
+                    i < waterGlasses
+                      ? "bg-blue-500 shadow-sm shadow-blue-500/20"
+                      : "bg-zinc-100"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-zinc-100">
+            <span className="text-xs text-zinc-500 font-medium">
+              ~{waterGlasses * 250} ml
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleWaterChange(-1)}
+                disabled={waterGlasses <= 0}
+                className="w-7 h-7 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs flex items-center justify-center transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-95"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                onClick={() => handleWaterChange(1)}
+                className="w-7 h-7 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center transition shadow-sm cursor-pointer active:scale-95"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Recent Activity Section */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] p-6 sm:p-7">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base font-bold text-zinc-900 tracking-tight">
@@ -753,7 +1256,7 @@ const Dashboard = () => {
               to="/logs"
               className="text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
-              View all history
+              View all history &rarr;
             </Link>
           )}
         </div>
@@ -808,7 +1311,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Weekly Insights Card */}
+      {/* 5. Weekly Insights Card */}
       <div className="stat-card opacity-0 bg-white rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] p-6 sm:p-7">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
           <div className="flex items-center gap-3">
@@ -854,33 +1357,25 @@ const Dashboard = () => {
 
         {weeklyInsights.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {weeklyInsights.map((wk) => (
+            {weeklyInsights.map((day) => (
               <div
-                key={wk.id}
-                className="p-4 border border-zinc-200/70 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-300 transition rounded-xl flex flex-col justify-between"
+                key={day.date}
+                className="p-4 rounded-xl border border-zinc-200/70 bg-zinc-50/50 flex flex-col justify-between space-y-2 hover:bg-zinc-50 transition"
               >
-                <div className="flex justify-between items-start mb-2.5">
-                  <span className="text-xs font-semibold text-zinc-800">
-                    {new Date(wk.date).toLocaleDateString(undefined, {
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-zinc-900">
+                    {new Date(day.date).toLocaleDateString(undefined, {
                       weekday: "short",
                       month: "short",
                       day: "numeric",
                     })}
                   </span>
-                  <span
-                    className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md ${
-                      wk.status === "balanced"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                        : wk.status === "deficit"
-                          ? "bg-blue-50 text-blue-700 border border-blue-100"
-                          : "bg-rose-50 text-rose-700 border border-rose-100"
-                    }`}
-                  >
-                    {wk.status || "unknown"}
+                  <span className="text-zinc-500 font-medium tabular-nums">
+                    {formatCalories(day.calories)}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-600 leading-relaxed italic">
-                  {wk.content}
+                <p className="text-[11px] text-zinc-600 line-clamp-2 leading-relaxed">
+                  {day.insight || "No specific log analysis for this day."}
                 </p>
               </div>
             ))}
@@ -888,8 +1383,7 @@ const Dashboard = () => {
         ) : (
           <div className="text-center py-8">
             <p className="text-xs text-zinc-400">
-              Keep logging your meals across the week to unlock automated
-              nutritional reports.
+              Weekly trend insights will populate as you log meals over time.
             </p>
           </div>
         )}
