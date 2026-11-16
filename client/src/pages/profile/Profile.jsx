@@ -28,7 +28,7 @@ const Profile = () => {
   const photoMutation = useMutation({
     mutationFn: (formData) => updateProfilePicture(formData),
     onSuccess: () => {
-      toast.success('Profile picture updated!');
+      toast.success('Profile photo updated!');
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
     },
     onError: (error) => {
@@ -57,7 +57,6 @@ const Profile = () => {
     }
   });
 
-  // Sync form with data when it loads
   useEffect(() => {
     if (userData || userGoal) {
       reset({
@@ -77,18 +76,10 @@ const Profile = () => {
       const container = root.current.querySelector('.profile-container');
       if (container) {
         container.animate(
-          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
-          { duration: 800, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)', fill: 'forwards' }
+          [{ transform: 'translateY(16px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' }
         );
       }
-      
-      const profileCards = root.current.querySelectorAll('.profile-card');
-      profileCards.forEach((el, index) => {
-        el.animate(
-          [{ transform: 'translateY(20px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
-          { duration: 500, delay: 200 + (index * 150), easing: 'ease-out', fill: 'forwards' }
-        );
-      });
     }
   }, [isLoading, goalLoading]);
 
@@ -135,216 +126,222 @@ const Profile = () => {
   };
 
   return (
-    <div ref={root}>
-      <div className="profile-container opacity-0 max-w-4xl mx-auto space-y-8 pb-12">
-      <header className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">User Profile</h1>
-          <p className="text-gray-500 mt-1">Manage your personal metrics and account settings.</p>
-        </div>
-        {!isEditing && (
-          <button 
-            onClick={() => setIsEditing(true)}
-            className="px-6 py-2 bg-white border-2 border-blue-600 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition active:scale-95 shadow-sm"
-          >
-            Edit Profile
-          </button>
-        )}
-      </header>
+    <div ref={root} className="max-w-4xl mx-auto space-y-6 pb-12">
+      <div className="profile-container opacity-0 space-y-6">
+        {/* Header */}
+        <header className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900">User Profile</h1>
+            <p className="text-xs text-zinc-500">Manage your body metrics, account data, and nutrition targets.</p>
+          </div>
+          {!isEditing && (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-white border border-zinc-200 hover:border-zinc-300 text-zinc-800 text-xs font-semibold rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              Edit Profile
+            </button>
+          )}
+        </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Simple Info Card */}
-        <div className="profile-card opacity-0 lg:col-span-1 space-y-6">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-            <div className="relative group cursor-pointer">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-black mb-6 border-4 border-white shadow-xl overflow-hidden">
-                {userData?.profilePicture ? (
-                  <img src={userData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{userData?.firstName?.charAt(0) || 'U'}</span>
-                )}
-                
-                {/* Overlay on hover */}
-                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer mb-6 rounded-full">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  </svg>
-                  <input type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" disabled={photoMutation.isPending} />
-                </label>
-              </div>
-              {photoMutation.isPending && (
-                <div className="absolute inset-0 flex items-center justify-center mb-6">
-                  <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* User Bio Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col items-center text-center">
+              <div className="relative group cursor-pointer mb-4">
+                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md overflow-hidden border-2 border-white">
+                  {userData?.profilePicture ? (
+                    <img src={userData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{userData?.firstName?.charAt(0) || 'U'}</span>
+                  )}
+                  
+                  {/* Photo upload overlay */}
+                  <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition rounded-full cursor-pointer">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    </svg>
+                    <input type="file" className="hidden" onChange={handlePhotoUpload} accept="image/*" disabled={photoMutation.isPending} />
+                  </label>
                 </div>
-              )}
-            </div>
-            
-            <h2 className="text-2xl font-black text-gray-900 leading-tight">
-              {userData?.firstName} {userData?.lastName}
-            </h2>
-            <p className="text-gray-500 font-medium mb-6">{userData?.email}</p>
-            
-            <div className="w-full pt-6 border-t border-gray-100 flex justify-around">
-              <div className="text-center">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
-                <div className="px-2 py-0.5 bg-green-50 text-green-600 text-xs font-bold rounded-full">Active</div>
+                {photoMutation.isPending && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
               </div>
-              <div className="text-center">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Plan</p>
-                <div className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-full">Free</div>
+              
+              <h2 className="text-base font-bold text-zinc-900 leading-tight">
+                {userData?.firstName} {userData?.lastName}
+              </h2>
+              <p className="text-xs text-zinc-400 mt-0.5 mb-5">{userData?.email}</p>
+              
+              <div className="w-full pt-4 border-t border-zinc-100 grid grid-cols-2 gap-2 text-center text-xs">
+                <div>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Account</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold rounded-md border border-emerald-100">
+                    Active
+                  </span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tier</p>
+                  <span className="inline-block mt-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-semibold rounded-md border border-blue-100">
+                    Pro Free
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Form area */}
-        <div className="profile-card opacity-0 lg:col-span-2">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-800">Physical Metrics</h3>
-            </div>
-            
-            <div className="p-8">
-              {!isEditing ? (
-                <div className="grid grid-cols-2 gap-8">
-                  <MetricView label="Weight" value={userData?.weight} unit="kg" icon="⚖️" />
-                  <MetricView label="Height" value={userData?.height} unit="cm" icon="📏" />
-                  <MetricView label="Age" value={userData?.age} unit="years" icon="🎂" />
-                  <MetricView label="Gender" value={userData?.gender} icon="🚻" />
-                  <div className="col-span-2">
-                    <MetricView label="Activity Level" value={userData?.activityLevel} icon="⚡" full />
-                  </div>
-                  <div className="col-span-2 border-t border-gray-100 pt-6 mt-2">
-                    <h4 className="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wider">Nutrition Goals</h4>
-                    <div className="grid grid-cols-2 gap-8">
-                      <MetricView label="Goal Type" value={userGoal?.goalType?.replace('_', ' ')} icon="🎯" />
-                      <MetricView label="Target Calories" value={userGoal?.targetCalories} unit="kcal" icon="🔥" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormInput 
-                      label="Weight (kg)" 
-                      type="number" 
-                      step="0.1"
-                      register={register('weight', { required: 'Weight is required' })}
-                      error={errors.weight}
-                    />
-                    <FormInput 
-                      label="Height (cm)" 
-                      type="number"
-                      register={register('height', { required: 'Height is required' })}
-                      error={errors.height}
-                    />
-                    <FormInput 
-                      label="Age" 
-                      type="number"
-                      register={register('age', { required: 'Age is required' })}
-                      error={errors.age}
-                    />
-                    <div className="space-y-2">
-                      <label className="text-sm font-bold text-gray-700 ml-1">Gender</label>
-                      <select 
-                        {...register('gender', { required: 'Gender is required' })}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
-                      {errors.gender && <p className="text-red-500 text-xs mt-1 ml-1">{errors.gender.message}</p>}
-                    </div>
-                    <div className="col-span-1 md:col-span-2 space-y-2">
-                      <label className="text-sm font-bold text-gray-700 ml-1">Activity Level</label>
-                      <select 
-                        {...register('activityLevel')}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none"
-                      >
-                        <option value="sedentary">Sedentary (Little/no exercise)</option>
-                        <option value="light">Lightly Active (1-3 days/week)</option>
-                        <option value="active">Active (Daily exercise/Physical job)</option>
-                      </select>
+          {/* Form & Metrics Area */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] overflow-hidden">
+              <div className="px-6 py-4 border-b border-zinc-100 flex justify-between items-center bg-zinc-50/50">
+                <h3 className="text-sm font-bold text-zinc-900">Physical Metrics & Targets</h3>
+                {isEditing && (
+                  <span className="text-[11px] font-medium text-blue-600">Editing mode</span>
+                )}
+              </div>
+              
+              <div className="p-6">
+                {!isEditing ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <MetricCard label="Weight" value={userData?.weight} unit="kg" />
+                    <MetricCard label="Height" value={userData?.height} unit="cm" />
+                    <MetricCard label="Age" value={userData?.age} unit="years" />
+                    <MetricCard label="Gender" value={userData?.gender} capitalize />
+                    <div className="col-span-2">
+                      <MetricCard label="Activity Level" value={userData?.activityLevel} capitalize full />
                     </div>
 
-                    <div className="col-span-1 md:col-span-2 mt-4 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="col-span-1 md:col-span-2">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Nutrition Goals</h4>
+                    <div className="col-span-2 border-t border-zinc-100 pt-5 mt-2">
+                      <h4 className="text-[11px] font-bold text-zinc-400 mb-3 uppercase tracking-wider">Nutrition Goals</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <MetricCard label="Goal Strategy" value={userGoal?.goalType?.replace('_', ' ')} capitalize />
+                        <MetricCard label="Target Daily Calories" value={userGoal?.targetCalories} unit="kcal" />
                       </div>
-                      
-                      <div className="space-y-2">
-                        <label className="text-sm font-bold text-gray-700 ml-1">Goal Type</label>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormInput 
+                        label="Weight (kg)" 
+                        type="number" 
+                        step="0.1"
+                        register={register('weight', { required: 'Weight is required' })}
+                        error={errors.weight}
+                      />
+                      <FormInput 
+                        label="Height (cm)" 
+                        type="number" 
+                        register={register('height', { required: 'Height is required' })}
+                        error={errors.height}
+                      />
+                      <FormInput 
+                        label="Age" 
+                        type="number" 
+                        register={register('age', { required: 'Age is required' })}
+                        error={errors.age}
+                      />
+                      <div>
+                        <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Gender</label>
                         <select 
-                          {...register('goalType')}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none"
+                          {...register('gender', { required: 'Gender is required' })}
+                          className="w-full px-3.5 py-2.5 text-sm text-zinc-900 bg-zinc-50/60 border border-zinc-200 rounded-xl transition duration-150 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 cursor-pointer"
                         >
-                          <option value="lose_weight">Lose Weight</option>
-                          <option value="maintain">Maintain</option>
-                          <option value="gain_weight">Gain Weight</option>
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                        </select>
+                        {errors.gender && <p className="text-rose-500 text-xs mt-1">{errors.gender.message}</p>}
+                      </div>
+
+                      <div className="col-span-1 md:col-span-2">
+                        <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Activity Level</label>
+                        <select 
+                          {...register('activityLevel')}
+                          className="w-full px-3.5 py-2.5 text-sm text-zinc-900 bg-zinc-50/60 border border-zinc-200 rounded-xl transition duration-150 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 cursor-pointer"
+                        >
+                          <option value="sedentary">Sedentary (Little or no exercise)</option>
+                          <option value="light">Lightly Active (1-3 days per week)</option>
+                          <option value="active">Active (Daily exercise or active job)</option>
                         </select>
                       </div>
 
-                      <FormInput 
-                        label="Target Calories (kcal)" 
-                        type="number"
-                        register={register('targetCalories')}
-                        error={errors.targetCalories}
-                      />
-                    </div>
-                  </div>
+                      <div className="col-span-1 md:col-span-2 pt-4 border-t border-zinc-100">
+                        <h4 className="text-[11px] font-bold text-zinc-400 mb-3 uppercase tracking-wider">Nutrition Goals</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-zinc-700 mb-1.5">Goal Type</label>
+                            <select 
+                              {...register('goalType')}
+                              className="w-full px-3.5 py-2.5 text-sm text-zinc-900 bg-zinc-50/60 border border-zinc-200 rounded-xl transition duration-150 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 cursor-pointer"
+                            >
+                              <option value="lose_weight">Lose Weight (Calorie Deficit)</option>
+                              <option value="maintain">Maintain Current Weight</option>
+                              <option value="gain_weight">Gain Weight (Calorie Surplus)</option>
+                            </select>
+                          </div>
 
-                  <div className="flex gap-4 pt-4">
-                    <button 
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="flex-1 py-3 px-6 border-2 border-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition active:scale-95"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={updateMutation.isPending}
-                      className="flex-2 py-3 px-10 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition active:scale-95 shadow-lg shadow-blue-100 disabled:bg-blue-300"
-                    >
-                      {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                </form>
-              )}
+                          <FormInput 
+                            label="Target Calories (kcal)" 
+                            type="number" 
+                            register={register('targetCalories')}
+                            error={errors.targetCalories}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-3">
+                      <button 
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 py-2.5 px-4 border border-zinc-200 text-zinc-700 font-semibold text-xs rounded-xl hover:bg-zinc-50 transition active:scale-95 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        disabled={updateMutation.isPending}
+                        className="flex-1 py-2.5 px-4 bg-blue-600 text-white font-semibold text-xs rounded-xl hover:bg-blue-700 transition active:scale-95 shadow-sm disabled:opacity-60 cursor-pointer"
+                      >
+                        {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
 };
 
-const MetricView = ({ label, value, unit, icon, full }) => (
-  <div className={`p-4 bg-gray-50 rounded-2xl border border-gray-100 ${full ? 'w-full' : ''}`}>
-    <div className="flex items-center gap-3 mb-1">
-      <span className="text-lg">{icon}</span>
-      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>
-    </div>
-    <p className="text-xl font-black text-gray-800 ml-7">
-      {value ? `${value}${unit ? ' ' + unit : ''}` : <span className="text-gray-300 italic text-sm font-medium">Not set</span>}
+const MetricCard = ({ label, value, unit, capitalize, full }) => (
+  <div className={`p-4 bg-zinc-50/60 rounded-xl border border-zinc-100 ${full ? 'w-full' : ''}`}>
+    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1">{label}</p>
+    <p className={`text-sm font-bold text-zinc-900 tabular-nums ${capitalize ? 'capitalize' : ''}`}>
+      {value ? `${value}${unit ? ' ' + unit : ''}` : <span className="text-zinc-400 italic text-xs font-normal">Not configured</span>}
     </p>
   </div>
 );
 
 const FormInput = ({ label, type, register, error, step }) => (
-  <div className="space-y-2">
-    <label className="text-sm font-bold text-gray-700 ml-1">{label}</label>
+  <div>
+    <label className="block text-xs font-semibold text-zinc-700 mb-1.5">{label}</label>
     <input 
       type={type}
       step={step}
       {...register}
-      className={`w-full px-4 py-3 rounded-xl border transition outline-none ${
-        error ? 'border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+      className={`w-full px-3.5 py-2.5 text-sm text-zinc-900 bg-zinc-50/60 border rounded-xl transition duration-150 placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:ring-4 ${
+        error ? 'border-rose-400 focus:border-rose-600 focus:ring-rose-500/10' : 'border-zinc-200 focus:border-blue-600 focus:ring-blue-600/10'
       }`}
     />
-    {error && <p className="text-red-500 text-xs mt-1 ml-1">{error.message}</p>}
+    {error && <p className="text-rose-500 text-xs mt-1 font-medium">{error.message}</p>}
   </div>
 );
 

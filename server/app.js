@@ -15,8 +15,23 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
 });
 
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim().replace(/\/$/, ""))
+  : ["http://localhost:5173"];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "*",
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const normalizedOrigin = origin.replace(/\/$/, "");
+    if (
+      allowedOrigins.includes("*") ||
+      allowedOrigins.includes(normalizedOrigin) ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin)
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
   credentials: true,
 };
 

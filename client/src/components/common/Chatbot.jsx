@@ -10,7 +10,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       role: "model",
-      text: "Hi! I am your AI Nutrition Coach. How can I help you with your diet today?",
+      text: "Hi! I'm your AI Nutrition Assistant. Ask me anything about calories, macro goals, or healthy food choices.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -42,11 +42,6 @@ const Chatbot = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Derives the Socket.io origin from the REST base URL.
-      // A relative base like "/api" means "same origin as the page", so after
-      // stripping the suffix the result is "" - and io("") builds the invalid
-      // URI "http://". Passing undefined instead makes socket.io-client fall
-      // back to window.location, which is what a same-origin deployment wants.
       const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
       const socketUrl = apiUrl.replace(/\/api\/?$/, "") || undefined;
       socketRef.current = io(socketUrl);
@@ -68,54 +63,73 @@ const Chatbot = () => {
       });
 
       return () => {
-        socketRef.current?.disconnect();
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+        }
       };
     }
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) return null;
-
-  const toggleChat = () => setIsOpen(!isOpen);
+  const toggleChat = () => {
+    setIsOpen(!isOpen);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    if (!isAuthenticated) {
+      toast("Please sign in to chat with the AI Nutrition Assistant", {
+        icon: "🔒",
+      });
+      return;
+    }
+
     const userMessage = input.trim();
     setInput("");
-    // Push user message AND empty model message
-    const newHistory = [...messages, { role: "user", text: userMessage }];
-    setMessages([...newHistory, { role: "model", text: "" }]);
+    setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
     setIsLoading(true);
 
     try {
-      const historyToPass = messages.length > 1 ? messages.slice(1) : [];
-      await sendChatMessage(userMessage, historyToPass, socketRef.current?.id);
-      // The rest is handled by 'chat-stream' socket event
-    } catch (error) {
-      toast.error("AI is struggling to answer right now.");
+      const socketId = socketRef.current?.id;
+      setMessages((prev) => [...prev, { role: "model", text: "" }]);
+
+      const response = await sendChatMessage(
+        messages.concat({ role: "user", text: userMessage }),
+        userMessage,
+        socketId,
+      );
+
+      if (!socketId) {
+        setMessages((prev) => [
+          ...prev.slice(0, -1),
+          { role: "model", text: response.reply },
+        ]);
+        setIsLoading(false);
+      }
+    } catch {
       setIsLoading(false);
       setMessages((prev) => [
         ...prev.slice(0, -1),
         {
           role: "model",
-          text: "Sorry, I am having trouble connecting to the server. Please try again later.",
+          text: "Sorry, I am having trouble connecting to the AI server. Please try again later.",
         },
       ]);
     }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end">
       {/* Chat Window */}
       {isOpen && (
-        <div className="bg-white/90 backdrop-blur-xl w-80 sm:w-96 rounded-3xl shadow-2xl border border-gray-100 mb-4 overflow-hidden flex flex-col animate-[slideUp_0.3s_ease-out]">
+        <div className="bg-white w-[340px] sm:w-[380px] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.14)] border border-zinc-200/90 mb-3 overflow-hidden flex flex-col animate-[slideUp_0.25s_cubic-bezier(0.16,1,0.3,1)]">
           {/* Header */}
-          <div className="bg-blue-600 p-4 text-white flex justify-between items-center shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm -rotate-12">
+          <div className="bg-zinc-900 p-3.5 text-white flex justify-between items-center">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-sm">
                 <svg
-                  className="w-5 h-5 text-white"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -123,24 +137,25 @@ const Chatbot = () => {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth="2"
+                    strokeWidth="2.2"
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-sm tracking-wide">
-                  Nutrition AI
+                <h3 className="font-semibold text-xs tracking-tight text-white flex items-center gap-1.5">
+                  AI Nutrition Coach
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 </h3>
-                <p className="text-[10px] text-blue-100">Powered by Gemini</p>
+                <p className="text-[10px] text-zinc-400">Powered by Gemini 2.5</p>
               </div>
             </div>
             <button
               onClick={toggleChat}
-              className="text-blue-100 hover:text-white transition bg-blue-700/50 p-1.5 rounded-full"
+              className="text-zinc-400 hover:text-white transition p-1 rounded-lg hover:bg-zinc-800 cursor-pointer"
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -158,7 +173,7 @@ const Chatbot = () => {
           {/* Messages Area */}
           <div
             ref={messagesContainerRef}
-            className="flex-1 p-4 h-80 overflow-y-auto bg-gray-50/50 flex flex-col gap-3"
+            className="flex-1 p-3.5 h-80 overflow-y-auto bg-zinc-50/50 flex flex-col gap-2.5"
           >
             {messages.map((msg, idx) => (
               <div
@@ -166,10 +181,10 @@ const Chatbot = () => {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${
+                  className={`max-w-[85%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-white border border-gray-100 text-gray-700 rounded-bl-none"
+                      ? "bg-blue-600 text-white rounded-br-sm shadow-sm"
+                      : "bg-white border border-zinc-200/80 text-zinc-800 rounded-bl-sm shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
                   }`}
                 >
                   {msg.text}
@@ -178,17 +193,17 @@ const Chatbot = () => {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-100 text-gray-500 rounded-2xl rounded-bl-none p-3 max-w-[80%] text-sm flex gap-1 items-center shadow-sm">
+                <div className="bg-white border border-zinc-200/80 text-zinc-400 rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-xs flex gap-1 items-center shadow-sm">
                   <span
-                    className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"
                     style={{ animationDelay: "0ms" }}
                   />
                   <span
-                    className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"
                     style={{ animationDelay: "150ms" }}
                   />
                   <span
-                    className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                    className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce"
                     style={{ animationDelay: "300ms" }}
                   />
                 </div>
@@ -200,27 +215,28 @@ const Chatbot = () => {
           {/* Input Area */}
           <form
             onSubmit={handleSubmit}
-            className="p-3 bg-white border-t border-gray-100 flex gap-2"
+            className="p-2.5 bg-white border-t border-zinc-100 flex gap-2 items-center"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about calories..."
-              className="flex-1 bg-gray-100 rounded-full px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition"
+              placeholder="Ask about your diet or calories..."
+              className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 transition"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-md shadow-blue-200 hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95"
             >
               <svg
-                className="w-4 h-4 ml-1"
-                fill="currentColor"
+                className="w-3.5 h-3.5 ml-0.5"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </button>
           </form>
@@ -230,11 +246,12 @@ const Chatbot = () => {
       {/* Floating Toggle Button */}
       <button
         onClick={toggleChat}
-        className={`bg-blue-600 text-white p-4 rounded-full shadow-xl shadow-blue-200 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center group ${isOpen ? "rotate-90 scale-0 opacity-0 absolute pointer-events-none" : "rotate-0 opacity-100"}`}
+        className={`bg-zinc-900 text-white p-3.5 rounded-full shadow-lg shadow-zinc-900/20 hover:bg-zinc-800 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center cursor-pointer ${
+          isOpen ? "rotate-90 scale-0 opacity-0 absolute pointer-events-none" : "rotate-0 opacity-100"
+        }`}
       >
-        <div className="absolute inset-0 bg-blue-400 rounded-full mix-blend-multiply opacity-0 group-hover:opacity-50 transition blur-md" />
         <svg
-          className="w-7 h-7 relative z-10 animate-pulse"
+          className="w-5 h-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -242,7 +259,7 @@ const Chatbot = () => {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth="2.5"
+            strokeWidth="2"
             d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
           />
         </svg>
@@ -252,7 +269,7 @@ const Chatbot = () => {
         dangerouslySetInnerHTML={{
           __html: `
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px) scale(0.95); }
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
       `,

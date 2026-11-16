@@ -17,7 +17,7 @@ const Dashboard = () => {
 
   const { todayData, loading: logsLoading } = useSelector((state) => state.log);
   const { dailyInsight: insightData, weeklyInsights: weeklyData, weeklyMeta, loading: insightLoading, weeklyLoading } = useSelector((state) => state.insight);
-  const { userGoal: goalDataRes, goalLoading } = useSelector((state) => state.user);
+  const { userGoal, goalLoading } = useSelector((state) => state.user);
 
   const handleExportPdf = async () => {
     const toastId = toast.loading("Generating PDF Report...");
@@ -31,8 +31,8 @@ const Dashboard = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("PDF Downloaded!", { id: toastId });
-    } catch (error) {
+      toast.success("PDF Downloaded successfully!", { id: toastId });
+    } catch {
       toast.error("Failed to generate PDF.", { id: toastId });
     }
   };
@@ -52,13 +52,13 @@ const Dashboard = () => {
       statCards.forEach((el, index) => {
         el.animate(
           [
-            { transform: 'translateY(20px)', opacity: 0 },
+            { transform: 'translateY(16px)', opacity: 0 },
             { transform: 'translateY(0)', opacity: 1 }
           ],
           {
-            duration: 800,
-            delay: index * 100,
-            easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            duration: 400,
+            delay: index * 80,
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
             fill: 'forwards'
           }
         );
@@ -69,12 +69,12 @@ const Dashboard = () => {
         logItems.forEach((el, index) => {
           el.animate(
             [
-              { transform: 'translateX(-20px)', opacity: 0 },
+              { transform: 'translateX(-12px)', opacity: 0 },
               { transform: 'translateX(0)', opacity: 1 }
             ],
             {
-              duration: 500,
-              delay: index * 100,
+              duration: 350,
+              delay: index * 60,
               easing: 'ease-out',
               fill: 'forwards'
             }
@@ -86,86 +86,103 @@ const Dashboard = () => {
 
   if (isAuthenticated && (logsLoading || insightLoading || goalLoading || weeklyLoading)) return <Loader />;
 
+  // Landing view for unauthenticated users
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-12 animate-fade-in">
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-16 animate-fade-in">
         {/* Hero Section */}
         <section className="max-w-3xl space-y-6">
-          <h1 className="text-5xl md:text-6xl font-black text-gray-900 tracking-tight leading-tight">
-            Master Your Nutrition with <span className="text-blue-600">AI Intelligence</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+            AI-Powered Nutrition Intelligence
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-zinc-900 tracking-tight leading-[1.15]">
+            Precision nutrition. <br />
+            <span className="text-blue-600">Effortless tracking.</span>
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed min-h-[84px]">
-            <TypewriterText text="The smartest way to track your daily calories. Just snap a photo or search our database. Get personalized insights driven by advanced AI." />
+
+          <p className="text-base sm:text-lg text-zinc-600 leading-relaxed max-w-2xl mx-auto min-h-[64px]">
+            <TypewriterText text="Track calories, log meals with computer vision, and unlock personalized nutritional coaching driven by advanced AI models." />
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Link 
               to="/login" 
-              className="px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 hover:scale-105 transition active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold text-sm rounded-xl shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all"
             >
               Get Started for Free
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </Link>
             <Link 
               to="/detect" 
-              className="px-8 py-4 bg-white border-2 border-gray-100 text-gray-800 font-bold rounded-2xl hover:border-blue-200 transition active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-zinc-200 text-zinc-800 font-semibold text-sm rounded-xl hover:bg-zinc-50 hover:border-zinc-300 active:scale-[0.98] transition-all"
             >
+              <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              </svg>
               Try Food Detection
             </Link>
           </div>
         </section>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl pt-12">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 text-left hover:shadow-md transition">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Bento Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-5xl text-left">
+          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
+            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-5">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">AI Scan</h3>
-            <p className="text-gray-500">Just upload a photo of your meal and let our AI calculate your calories instantly.</p>
+            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Instant Vision Scanner</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Snap a photo of your food plate. Google Gemini computer vision classifies and calculates caloric estimates instantly.
+            </p>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 text-left hover:shadow-md transition">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-6">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
+            <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-5">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Smart Search</h3>
-            <p className="text-gray-500">Access nutritional data for over 100,000+ commercial and natural food items.</p>
+            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Verified Nutrition Library</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Access comprehensive, verified macronutrient data for over 100,000+ natural and commercial foods via FatSecret & Edamam.
+            </p>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 text-left hover:shadow-md transition">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-6">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] hover:border-zinc-300 transition-all">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-5">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">AI Insights</h3>
-            <p className="text-gray-500">Receive personalized nutritional feedback to help you hit your daily health goals.</p>
+            <h3 className="text-base font-bold text-zinc-900 mb-1.5">Personalized AI Coach</h3>
+            <p className="text-xs text-zinc-500 leading-relaxed">
+              Receive smart daily coaching on deficits, macro balances, and tailored meal suggestions to keep your fitness on track.
+            </p>
           </div>
         </div>
 
-        {/* API Attribution Footer */}
-        <div className="mt-20 pt-8 border-t border-gray-100 w-full max-w-6xl flex flex-col items-center justify-center space-y-6">
-          <p className="text-sm font-bold text-gray-400 tracking-widest uppercase">Trusted Data Providers</p>
-          <div className="flex flex-col sm:flex-row items-center gap-12 opacity-80 hover:opacity-100 transition duration-300">
-            {/* FatSecret Badge */}
-            <a href="https://platform.fatsecret.com" target="_blank" rel="noopener noreferrer" className="hover:scale-105 transition">
+        {/* Trusted Attribution */}
+        <div className="pt-8 border-t border-zinc-200/60 w-full max-w-4xl flex flex-col items-center justify-center space-y-4">
+          <p className="text-[11px] font-bold text-zinc-400 tracking-widest uppercase">Verified Data Partners</p>
+          <div className="flex flex-wrap items-center justify-center gap-8 opacity-75 hover:opacity-100 transition-opacity duration-200">
+            <a href="https://platform.fatsecret.com" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
               <img 
-                alt="Nutrition information provided by fatsecret Platform API" 
+                alt="FatSecret API" 
                 src="https://platform.fatsecret.com/api/static/images/powered_by_fatsecret_horizontal_brand.svg" 
-                border="0"
-                className="h-8"
+                className="h-6"
               />
             </a>
-            
-            {/* Edamam Badge */}
-            <a href="https://www.edamam.com" title="Powered by Edamam" target="_blank" rel="noopener noreferrer" className="hover:scale-105 transition">
+            <a href="https://www.edamam.com" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
               <img 
-                alt="Powered by Edamam" 
+                alt="Edamam" 
                 src="https://developer.edamam.com/images/transparent.png" 
-                className="h-10" 
+                className="h-7" 
               />
             </a>
           </div>
@@ -177,117 +194,197 @@ const Dashboard = () => {
   // Dashboard view for authenticated users
   const logs = todayData?.logs || [];
   const totalCalories = todayData?.totalCalories || 0;
+  const targetCalories = userGoal?.targetCalories || 2000;
+  const caloriePercent = Math.min(100, Math.round((totalCalories / targetCalories) * 100));
   const insight = insightData?.insight;
   const weeklyInsights = weeklyData || [];
-  const userGoal = goalDataRes?.data;
 
   return (
     <div ref={root} className="space-y-6 pb-12 animate-fade-in">
-      <header className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Daily Dashboard</h1>
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Today's Overview</h1>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/detect"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm active:scale-[0.98] transition-all"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Log Meal
+          </Link>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition">
-             <svg className="w-24 h-24 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      {/* Top Metric Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Calorie Card */}
+        <div className="stat-card opacity-0 bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Calorie Target</span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                {caloriePercent}% completed
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-extrabold tracking-tight text-zinc-900 tabular-nums">
+                {formatCalories(totalCalories)}
+              </span>
+              <span className="text-sm font-medium text-zinc-400 tabular-nums">
+                / {formatCalories(targetCalories)} kcal
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-zinc-100 h-2 rounded-full mt-5 overflow-hidden">
+              <div 
+                className="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${caloriePercent}%` }}
+              />
+            </div>
           </div>
-          <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-2">Today's Calories</h2>
-          <p className="text-5xl font-black text-blue-600">
-            {formatCalories(totalCalories)}
-            {userGoal?.targetCalories && (
-              <span className="text-2xl text-gray-400 font-medium tracking-normal"> / {formatCalories(userGoal.targetCalories)}</span>
-            )}
-          </p>
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
-            {logs.length} items logged
+
+          <div className="mt-5 pt-4 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500">
+            <span>{logs.length} meal{logs.length !== 1 ? 's' : ''} logged today</span>
+            <Link to="/logs" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+              View details &rarr;
+            </Link>
           </div>
         </div>
 
-        <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-          <h2 className="text-lg font-bold text-gray-500 uppercase tracking-widest mb-4">AI Insight</h2>
-          <div className="prose prose-sm text-gray-600 leading-relaxed italic">
-            {insight ? (
-              <p>{insight}</p>
-            ) : (
-              <p>Start logging your meals to unlock personalized AI nutrition insights!</p>
-            )}
+        {/* AI Insight Card */}
+        <div className="stat-card opacity-0 bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Gemini Nutrition Coach</span>
+            </div>
+
+            <div className="text-xs text-zinc-600 leading-relaxed bg-zinc-50/70 p-4 rounded-xl border border-zinc-100">
+              {insight ? (
+                <p className="italic">{insight}</p>
+              ) : (
+                <p className="text-zinc-400">Log meals throughout the day to receive intelligent calorie guidance and coaching.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-zinc-100 text-xs text-zinc-400">
+            Personalized advice based on your metabolic goals
           </div>
         </div>
       </div>
 
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
+      {/* Recent Activity Section */}
+      <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-base font-bold text-zinc-900 tracking-tight">Today's Meals</h2>
+          {logs.length > 0 && (
+            <Link to="/logs" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+              View all history
+            </Link>
+          )}
+        </div>
+
         {logs.length > 0 ? (
-          <ul className="divide-y divide-gray-100">
+          <div className="divide-y divide-zinc-100">
             {logs.slice(0, 5).map((log) => (
-              <li key={log.id} className="activity-log-item py-4 flex justify-between items-center hover:bg-gray-50 transition px-2 rounded-xl opacity-0">
-                <div>
-                  <p className="font-bold text-gray-800 capitalize">
-                    {log.Food?.name || 'Unknown Item'}
-                    <span className="text-xs text-gray-500 font-normal ml-2 lowercase">x{log.quantity || 1}</span>
-                  </p>
-                  <p className="text-xs text-gray-400 font-medium">{new Date(log.consumedAt || log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <div 
+                key={log.id} 
+                className="activity-log-item py-3.5 flex justify-between items-center hover:bg-zinc-50/60 px-2 rounded-xl transition duration-150 opacity-0"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-500 font-bold text-xs">
+                    {(log.Food?.name || 'F')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-900 capitalize">
+                      {log.Food?.name || 'Meal Item'}
+                      <span className="text-[11px] text-zinc-400 font-normal ml-1.5">&times;{log.quantity || 1}</span>
+                    </p>
+                    <p className="text-[11px] text-zinc-400">
+                      {new Date(log.consumedAt || log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
-                <p className="font-black text-gray-700">{formatCalories(log.Food?.calories * log.quantity || 0)}</p>
-              </li>
+                
+                <span className="text-xs font-bold text-zinc-900 tabular-nums">
+                  {formatCalories(log.Food?.calories * log.quantity || 0)}
+                </span>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-400 font-medium">No activity recorded today.</p>
-            <Link to="/detect" className="text-blue-600 font-bold hover:underline mt-2 inline-block">Record your first meal</Link>
+          <div className="text-center py-10 space-y-2">
+            <p className="text-xs text-zinc-400 font-medium">No meals recorded yet today.</p>
+            <Link to="/detect" className="text-xs font-semibold text-blue-600 hover:underline inline-block">
+              Scan or add your first meal &rarr;
+            </Link>
           </div>
         )}
       </div>
 
-      <div className="stat-card opacity-0 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">Weekly AI Report</h2>
+      {/* Weekly Insights Card */}
+      <div className="stat-card opacity-0 bg-white rounded-2xl border border-zinc-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_24px_-4px_rgba(0,0,0,0.04)] p-6 sm:p-7">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-bold text-zinc-900 tracking-tight">Weekly AI Summary</h2>
             {weeklyData && weeklyData.length > 0 && (
               <button 
                 onClick={handleExportPdf}
-                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 transition active:scale-95"
+                className="text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-semibold py-1.5 px-3 rounded-lg inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                PDF
+                <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export PDF
               </button>
             )}
           </div>
+
           {weeklyMeta && (
-            <div className="text-right">
-              <span className="text-sm font-bold text-gray-500 uppercase">Total 7-Day Calories</span>
-              <p className="text-2xl font-black text-blue-600">
-                {formatCalories(weeklyMeta.totalWeeklyCalories)} 
-                <span className="text-base text-gray-400 font-medium"> / {formatCalories(weeklyMeta.totalWeeklyTarget)}</span>
-              </p>
+            <div className="text-xs text-zinc-500">
+              7-Day Total: <span className="font-bold text-zinc-900 tabular-nums">{formatCalories(weeklyMeta.totalWeeklyCalories)}</span>
+              <span className="text-zinc-400 tabular-nums"> / {formatCalories(weeklyMeta.totalWeeklyTarget)}</span>
             </div>
           )}
         </div>
         
         {weeklyInsights.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {weeklyInsights.map((wk) => (
-              <div key={wk.id} className="p-5 border border-gray-100 bg-gray-50 hover:bg-gray-100 transition rounded-2xl flex flex-col justify-between">
-                <div className="flex justify-between items-start mb-3">
-                  <span className="text-sm font-bold text-gray-800">
-                    {new Date(wk.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+              <div 
+                key={wk.id} 
+                className="p-4 border border-zinc-200/70 bg-zinc-50/50 hover:bg-zinc-50 hover:border-zinc-300 transition rounded-xl flex flex-col justify-between"
+              >
+                <div className="flex justify-between items-start mb-2.5">
+                  <span className="text-xs font-semibold text-zinc-800">
+                    {new Date(wk.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
-                  <span className={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-md ${
-                    wk.status === 'balanced' ? 'bg-green-100 text-green-700' :
-                    wk.status === 'deficit' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                  <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-md ${
+                    wk.status === 'balanced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                    wk.status === 'deficit' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 
+                    'bg-rose-50 text-rose-700 border border-rose-100'
                   }`}>
                     {wk.status || 'unknown'}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 italic leading-relaxed">{wk.content}</p>
+                <p className="text-xs text-zinc-600 leading-relaxed italic">{wk.content}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-400 font-medium">No weekly data available yet. Keep logging your food to build your history!</p>
+          <div className="text-center py-8">
+            <p className="text-xs text-zinc-400">Keep logging your meals across the week to unlock automated nutritional reports.</p>
           </div>
         )}
       </div>
