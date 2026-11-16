@@ -1,6 +1,7 @@
 const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
+const helmet = require("helmet");
 const router = require("./routes/index");
 const errorHandler = require("./middlewares/errorHandler");
 const morgan = require("morgan");
@@ -35,15 +36,16 @@ const corsOptions = {
   credentials: true,
 };
 
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("dev"));
+}
 
 app.use("/api", apiLimiter, router);
-
-// error handler
 app.use(errorHandler);
 
 module.exports = app;
